@@ -1,0 +1,18 @@
+
+
+arr:
+  sonarr:
+  - url: https://sonarr.test.com
+    api_key: bb634g3h3h3hgfsdxx...
+    instance_name: anime-sonarr
+    skip_tls: true
+  radarr:
+  - url: http://radarr.test.com
+    api_key: hj2t048fhg2424g...
+    instance_name: radarr_one
+  - url: http://radarr.test2.com
+    api_key: fn20jhfj+9j1f13f...
+    instance_name: radarr_two
+  lidarr:
+  - url: http://lidarr.test.com
+    api_key: hj2t048fhg2424g
