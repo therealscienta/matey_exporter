@@ -5,9 +5,11 @@ from pprint import pp
 import sys
 import yaml
 from yaml.loader import SafeLoader
+from pathlib import Path
 
+# TODO
 try:
-    with open('config.yaml') as f:
+    with open(str(Path(__file__).parent.absolute()) + '\config.yaml') as f:
         configs = yaml.load(f, Loader=SafeLoader)
 except Exception as e:
     sys.exit(f'Could not open config file: {e}')
@@ -21,7 +23,14 @@ controller = MateyDataProcessorSonarr()
 if 'sonarr' in configs['arr'].keys():
     from prometheus_matey_exporter.arr import sonarr
     for i in configs['arr']['sonarr']:
-        handler.add_source(sonarr.matey_sonarr(i['url'], i['api_key'], i['instance_name']))
+        test = sonarr.matey_sonarr(i['url'], i['api_key'], i['instance_name'])
+        handler.add_source(test)
+
+#for i in test.api.get_wanted():
+# o = test.api.get_episodes()
+# # wanted/queue = o['records']
+# pp(o)
+# sys.exit()
  
 #import os   
 #from dotenv import load_dotenv
@@ -32,7 +41,7 @@ from prometheus_client import start_http_server, Info
 import time
 
 i = Info('matey_build_version', 'Prometheus Matey Exporter build version')
-i.info({'version': '0.0.1', 'buildhost': 'foo@bar'})
+i.info({'version': '0.0.1', 'build': 'XXXXXXXX'})
 
 if __name__ == '__main__':
     
