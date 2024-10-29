@@ -1,1 +1,0 @@
-from .sonarr import matey_sonarr

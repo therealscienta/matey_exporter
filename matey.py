@@ -7,43 +7,32 @@ import yaml
 from yaml.loader import SafeLoader
 from pathlib import Path
 
-# TODO
+from dotenv import load_dotenv
+load_dotenv()
+
+from requests.packages import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# TODO: make OS agnostic
 try:
-    with open(str(Path(__file__).parent.absolute()) + '\config.yaml') as f:
-        configs = yaml.load(f, Loader=SafeLoader)
+    with open(str(Path(__file__).parent.absolute()) + '\\config.yaml') as f:
+        config = yaml.load(f, Loader=SafeLoader)
 except Exception as e:
     sys.exit(f'Could not open config file: {e}')
 
-from prometheus_matey_exporter.engine.handler import MateyHandler
-from prometheus_matey_exporter.engine.processor import MateyDataProcessorSonarr
-
-handler = MateyHandler()
-controller = MateyDataProcessorSonarr()
-
-if 'sonarr' in configs['arr'].keys():
-    from prometheus_matey_exporter.arr import sonarr
-    for i in configs['arr']['sonarr']:
-        test = sonarr.matey_sonarr(i['url'], i['api_key'], i['instance_name'])
-        handler.add_source(test)
-
-#for i in test.api.get_wanted():
-# o = test.api.get_episodes()
-# # wanted/queue = o['records']
-# pp(o)
-# sys.exit()
- 
-#import os   
-#from dotenv import load_dotenv
-#load_dotenv()
-
-
-from prometheus_client import start_http_server, Info
-import time
-
-i = Info('matey_build_version', 'Prometheus Matey Exporter build version')
-i.info({'version': '0.0.1', 'build': 'XXXXXXXX'})
-
 if __name__ == '__main__':
+    
+
+    from utils import MateyHandler, load_submodules
+
+    handler = MateyHandler()
+    load_submodules(config, handler)
+
+    from prometheus_client import start_http_server, Info
+    import time
+
+    i = Info('matey_build_version', 'Prometheus Matey Exporter build version')
+    i.info({'version': '0.0.1', 'build': 'XXXXXXXX'})
     
     # from flask import Flask
     # from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -61,5 +50,5 @@ if __name__ == '__main__':
     start_http_server(8000)
     while True:
         for source in handler.sources:
-            controller.get_data(source)
+            source.update()
             time.sleep(1)

@@ -10,3 +10,4 @@ class MateyType(Enum):
     TRANSMISSION = 'transmission'
     UTORRENT = 'utorrent'
     SABNZBD = 'sabnzbd'
+

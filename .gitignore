@@ -215,6 +215,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # Config file
-config.yaml
+*.yaml
 
 # End of https://www.toptal.com/developers/gitignore/api/python,windows,linux
