@@ -2,18 +2,18 @@
 
 
 torrent_loader = {
-    'transmission': lambda url, api_key, instance_name: 
-        load_tranmission(url, api_key, instance_name),
+    'transmission': lambda **kwargs: 
+        load_tranmission(**kwargs),
         
-    'qbittorrent': lambda url, api_key, instance_name: 
-        load_qbittorrent(url, api_key, instance_name),
+    'qbittorrent': lambda **kwargs: 
+        load_qbittorrent(**kwargs),
 }
 
 
-def load_tranmission(url, api_key, instance_name):
+def load_tranmission(**kwargs):
     from .transmission import MateyTransmission
-    return MateyTransmission(url, api_key, instance_name)
+    return MateyTransmission(**kwargs)
 
-def load_qbittorrent(url, api_key, instance_name):
+def load_qbittorrent(**kwargs):
     from .qbittorrent import MateyQbittorrent
-    return MateyQbittorrent(url, api_key, instance_name)
+    return MateyQbittorrent(**kwargs)

@@ -10,10 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-from requests.packages import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# TODO: make OS agnostic
+# TODO: make OS agnostic and verify config options
 try:
     with open(str(Path(__file__).parent.absolute()) + '\\config.yaml') as f:
         config = yaml.load(f, Loader=SafeLoader)

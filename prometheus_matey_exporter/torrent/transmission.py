@@ -1,26 +1,54 @@
 
-from prometheus_matey_exporter.common.commons import MateyType
+from .base import BaseTransmissionClass
 
+import time
 from prometheus_client import Gauge, Summary
+
     
-class MateyTransmission(TorrentBaseClass):
-    TYPE = MateyType.TRANSMISSION
+class MateyTransmission(BaseTransmissionClass):
     
-    def __init__(self, url, api_key, instance_name):
-        super().__init__(url, api_key, instance_name)
-        self.api = SonarrAPI(self.url, self.api_key)
-        # TODO
-        self.api.session.verify = False
-        self.sonarr_series_total =              Gauge('sonarr_series_total',            'Number of total series',           labelnames=['instance', 'type'])
-        self.sonarr_wanted_series_total =       Gauge('sonarr_wanted_series_total',     'Number of total missing series',   labelnames=['instance', 'type'])
-        self.sonarr_wanted_episodes_total =     Gauge('sonarr_wanted_episodes_total',   'Number of total missing episodes', labelnames=['instance', 'type'])
-        self.sonarr_episodes_in_queue_total =   Gauge('sonarr_episodes_in_queue_total', 'Number of episodes in queue',      labelnames=['instance', 'type'])
-        self.sonarr_monitored_series_total =    Gauge('sonarr_monitored_series_total',  'Number of Monitored series',       labelnames=['instance', 'type'])
-        self.sonarr_upcoming_series_total =     Gauge('sonarr_upcoming_series_total',   'Number of Upcoming series',        labelnames=['instance', 'type'])
-        self.sonarr_ended_series_total =        Gauge('sonarr_ended_series_total',      'Number of Ended series',           labelnames=['instance', 'type'])
-        self.sonarr_continuing_series_total =   Gauge('sonarr_continuing_series_total', 'Number of Continuing series',      labelnames=['instance', 'type'])
-        self.sonarr_health_notifications =      Gauge('sonarr_health_notifications',    'Number of Health notifications',   labelnames=['instance', 'type'])
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         
-        self.sonarr_api_query_latency_seconds =         Summary('sonarr_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance', 'type'])
-        self.sonarr_data_processing_latency_seconds =   Summary('sonarr_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance', 'type'])
-      
+        self.transmission_torrents_total =              Gauge('transmission_torrents_total',            'Number of total torrents',           labelnames=['instance'])
+        # self.transmission_wanted_torrents_total =       Gauge('transmission_wanted_torrents_total',     'Number of total missing torrents',   labelnames=['instance'])
+        # self.transmission_wanted_episodes_total =     Gauge('transmission_wanted_episodes_total',   'Number of total missing episodes', labelnames=['instance'])
+        # self.transmission_episodes_in_queue_total =   Gauge('transmission_episodes_in_queue_total', 'Number of episodes in queue',      labelnames=['instance'])
+        # self.transmission_monitored_torrents_total =    Gauge('transmission_monitored_torrents_total',  'Number of Monitored torrents',       labelnames=['instance'])
+        # self.transmission_upcoming_torrents_total =     Gauge('transmission_upcoming_torrents_total',   'Number of Upcoming torrents',        labelnames=['instance'])
+        # self.transmission_ended_torrents_total =        Gauge('transmission_ended_torrents_total',      'Number of Ended torrents',           labelnames=['instance'])
+        # self.transmission_continuing_torrents_total =   Gauge('transmission_continuing_torrents_total', 'Number of Continuing torrents',      labelnames=['instance'])
+        # self.transmission_health_notifications =      Gauge('transmission_health_notifications',    'Number of Health notifications',   labelnames=['instance'])
+        
+        self.transmission_api_query_latency_seconds =         Summary('transmission_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
+        self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+        
+    def update(self):
+        start_time = time.time()
+        data = self.api.get_torrents()
+        self.transmission_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_time) # Time first API request TODO
+        
+        # episoded_wanted = len(self.api.get_wanted(page_size=9999)['records']) # TODO check if page_size can be something else
+        # episodes_qeued = len(self.api.get_queue(page_size=9999)['records'])
+        # health = len(self.api.get_health())
+        # status = {'upcoming': 0, 'ended': 0, 'continuing': 0}
+        # monitored = 0
+        # missing_torrents = 0
+        torrents_total = len(data)
+        
+        # for d in data:
+        #     status[d['status']] += 1
+        #     if d['monitored'] == True : monitored += 1
+        #     if d['status'] == 'upcoming' or d['statistics']['sizeOnDisk'] == 0: missing_torrents += 1
+
+        self.transmission_data_processing_latency_seconds.labels(instance=self.instance_name).observe(time.time() - start_time) # Time data processing
+        self.transmission_torrents_total.labels(instance=self.instance_name).set(torrents_total)
+        # self.transmission_wanted_torrents_total.labels(instance=self.instance_name).set(missing_torrents)
+        # self.transmission_wanted_episodes_total.labels(instance=self.instance_name).set(episoded_wanted)
+        # self.transmission_episodes_in_queue_total.labels(instance=self.instance_name).set(episodes_qeued)
+        # self.transmission_monitored_torrents_total.labels(instance=self.instance_name).set(monitored)
+        # self.transmission_upcoming_torrents_total.labels(instance=self.instance_name).set(status['upcoming'])
+        # self.transmission_ended_torrents_total.labels(instance=self.instance_name).set(status['ended'])
+        # self.transmission_continuing_torrents_total.labels(instance=self.instance_name).set(status['continuing'])
+        # self.transmission_health_notifications.labels(instance=self.instance_name).set(health)
+

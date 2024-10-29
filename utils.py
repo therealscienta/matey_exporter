@@ -18,14 +18,20 @@ def load_submodules(config, handler) -> None:
     try:
         for datasource in config.keys(): # sonarr/radarr etc.
             for config_instance in config[datasource.lower()]:
+                
+                # Disable request TLS verify warning
+                if 'verify' in config_instance.keys() and config_instance['verify'] == False:
+                    from requests.packages import urllib3
+                    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                else:
+                    config_instance['verify'] = True
+                
+                # Add sources to handler
                 handler.add_source(
                     loaders[datasource](
-                        config_instance['url'], 
-                        config_instance['api_key'], 
-                        config_instance['instance_name'])
-                )
+                        **config_instance))
     except Exception as e:
-        sys.exit(f'Invalid configuration option: {e}')
+        sys.exit(f'Invalid configuration option in: {datasource} - {e}')
 
 
 
