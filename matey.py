@@ -46,6 +46,5 @@ if __name__ == '__main__':
     # Start up the server to expose the metrics.
     start_http_server(8000)
     while True:
-        for source in handler.sources:
-            source.update()
-            time.sleep(1)
+        handler.get_data()
+        time.sleep(1)
