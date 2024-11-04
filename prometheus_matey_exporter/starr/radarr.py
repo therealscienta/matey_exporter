@@ -2,7 +2,6 @@
 from .base import BaseRadarrClass
 
 import time
-from pyarr import RadarrAPI
 from prometheus_client import Gauge, Summary
 
     

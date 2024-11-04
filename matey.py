@@ -10,7 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 load_dotenv()
 
-# TODO: make OS agnostic and verify config options
+# TODO: make OS agnostic and verify yaml structure config options
 try:
     with open(str(Path(__file__).parent.absolute()) + '\\config.yaml') as f:
         config = yaml.load(f, Loader=SafeLoader)
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     import time
 
     i = Info('matey_build_version', 'Prometheus Matey Exporter build version')
-    i.info({'version': '0.0.1', 'build': 'XXXXXXXX'})
+    i.info({'version': '0.1', 'build': 'XXXXXXXX'})
     
     # from flask import Flask
     # from werkzeug.middleware.dispatcher import DispatcherMiddleware
@@ -46,5 +46,5 @@ if __name__ == '__main__':
     # Start up the server to expose the metrics.
     start_http_server(8000)
     while True:
-        handler.get_data()
-        time.sleep(1)
+        handler.update()
+        time.sleep(5)
