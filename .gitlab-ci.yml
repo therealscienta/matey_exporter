@@ -1,0 +1,73 @@
+
+include:
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
+
+default:
+  image: ruby:3.1
+
+variables:
+  REGISTRY: gitlab.lan.tyresson.se:5050
+  REPOSITORY: dennis/prometheus-matey-exporter
+  VERSION: "1.0"
+  RELEASE: "$VERSION-$CI_COMMIT_SHORT_SHA"
+  IMAGE_NAME: $REGISTRY/$REPOSITORY:$RELEASE
+  GIT_INFRA_DIR: /home/gitlab-runner/git/pyttpass-k8s/deployment
+  DEPLOYMENT_FILE: pyttpass-pod.yaml
+
+container_scanning:
+  tags:
+    - docker
+  variables:
+    CS_IMAGE: $IMAGE_NAME
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /-draft$/ # Do not run if commit message end in -draft
+      when: never
+    #- if: $CI_PIPELINE_SOURCE == "push"
+    - when: always
+
+stages:
+  - build
+  - test
+  #- deploy
+
+
+build-job:
+  image: docker:24.0.7
+  tags:
+    - docker
+  stage: build
+  services:
+    - docker:24.0.7-dind
+  before_script:
+    - echo "Logging in to registry..."
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - echo "Login complete."
+  script:
+    - echo "Compiling the code..."
+    - docker build -t $IMAGE_NAME -t $REGISTRY/$REPOSITORY:latest .
+    - docker push $REGISTRY/$REPOSITORY --all-tags
+    - echo "Compile complete."
+  after_script:
+    - echo "Cleaning up."
+    - docker rmi -f $(docker image ls -q $REGISTRY/$REPOSITORY:latest)
+
+
+# deploy-job:
+#   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
+#   environment: production
+#   tags:
+#     - shell
+#   before_script:
+#     - echo "Deploying application..."
+#   script:
+#     - cd $GIT_INFRA_DIR
+#     - 'sed -i "s|image:.*|image: ${IMAGE_NAME}|" $DEPLOYMENT_FILE'
+#     - 'sed -i "s|value: 1.0.*|value: ${RELEASE}|" $DEPLOYMENT_FILE'
+#     - git add .
+#     - git commit -m "Updated from Pipeline job $CI_JOB_ID"
+#     - git push
+#   after_script: 
+#     - echo "Application successfully deployed."

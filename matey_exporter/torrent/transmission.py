@@ -1,15 +1,13 @@
 
-from .base import BaseTransmissionClass
+from .base import BaseTorrentClass
+from matey_exporter.common.enums import MateyType
 
 import time
 from prometheus_client import Gauge, Summary
+from transmission_rpc import Client
 
-    
-class MateyTransmission(BaseTransmissionClass):
-    
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        
+class MateyTransmissionPrometheusMetrics:
+    def __init__(self):
         self.transmission_torrents_total =              Gauge('transmission_torrents_total',            'Number of total torrents',           labelnames=['instance'])
         # self.transmission_wanted_torrents_total =       Gauge('transmission_wanted_torrents_total',     'Number of total missing torrents',   labelnames=['instance'])
         # self.transmission_wanted_episodes_total =     Gauge('transmission_wanted_episodes_total',   'Number of total missing episodes', labelnames=['instance'])
@@ -22,6 +20,16 @@ class MateyTransmission(BaseTransmissionClass):
         
         self.transmission_api_query_latency_seconds =         Summary('transmission_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+    
+class MateyTransmission(BaseTorrentClass):
+    TYPE = MateyType.TRANSMISSION
+    
+    def __init__(self, **kwargs):
+        super().__init__(Client(self.host_url, self.api_key), **kwargs)
+        self.api._http_session = kwargs.get('verify') # TODO: Using private attribute
+        self.metrics = MateyTransmissionPrometheusMetrics
+        
+
         
     def update(self):
         start_time = time.time()

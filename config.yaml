@@ -1,18 +1,21 @@
 
 
-arr:
-  sonarr:
-  - url: https://sonarr.test.com
-    api_key: bb634g3h3h3hgfsdxx...
-    instance_name: anime-sonarr
-    skip_tls: true
-  radarr:
-  - url: http://radarr.test.com
-    api_key: hj2t048fhg2424g...
-    instance_name: radarr_one
-  - url: http://radarr.test2.com
-    api_key: fn20jhfj+9j1f13f...
-    instance_name: radarr_two
-  lidarr:
-  - url: http://lidarr.test.com
-    api_key: hj2t048fhg2424g
+# Configures the connection to a Matey instance.
+# 
+# host_url: The URL of the Matey instance.
+# api_key: The API key for the Matey instance.
+# instance_name: A name to identify the Matey instance.
+# verify (optional): Whether to verify the SSL/TLS certificate of the Sonarr instance.
+
+
+Radarr:
+- host_url: https://radarr.ergregerg.se/
+  api_key: 47108d890ergergergergergergerge
+  instance_name: radarr_one
+  verify: False
+
+Sonarr:
+- host_url: https://sonarr.dfgertgergerg.se/
+  api_key: bb6250b1fc8246c688c32004b9156edf
+  instance_name: sonarr_one
+  verify: False

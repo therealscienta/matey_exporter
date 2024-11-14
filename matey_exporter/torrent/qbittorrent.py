@@ -1,15 +1,13 @@
 
-from .base import BaseQbittorrentClass
+from .base import BaseTorrentClass
+from matey_exporter.common.enums import MateyType
 
 import time
 from prometheus_client import Gauge, Summary
-
-    
-class MateyQbittorrent(BaseQbittorrentClass):
-    
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+from qbittorrent import Client
         
+class MateyQbittorrentPrometheusMetrics:
+    def __init__(self):
         self.qbittorrent_torrents_total =              Gauge('qbittorrent_torrents_total',            'Number of total torrents',           labelnames=['instance'])
         # self.qbittorrent_wanted_torrents_total =       Gauge('qbittorrent_wanted_torrents_total',     'Number of total missing torrents',   labelnames=['instance'])
         # self.qbittorrent_wanted_episodes_total =     Gauge('qbittorrent_wanted_episodes_total',   'Number of total missing episodes', labelnames=['instance'])
@@ -22,6 +20,22 @@ class MateyQbittorrent(BaseQbittorrentClass):
         
         self.qbittorrent_api_query_latency_seconds =         Summary('qbittorrent_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.qbittorrent_data_processing_latency_seconds =   Summary('qbittorrent_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+
+    
+class MateyQbittorrent(BaseTorrentClass):
+    TYPE = MateyType.QBITTORRENT
+    
+    def __init__(self, **kwargs):
+        super().__init__(Client(self.host_url, self.api_key, verify=kwargs.get('verify')), **kwargs)
+        self.api.login(kwargs.get('username'), self.api_key)
+        self.metrics = MateyQbittorrentPrometheusMetrics()
+        
+    def get_update_tasks(self):
+        '''Get all update tasks to run for the Sonarr instance'''
+        yield self.get_series_data_task
+        yield self.get_wanted_series_data_task
+        yield self.get_episodes_in_queue_data_task
+        yield self.get_health_data_task
         
     def update(self):
         start_time = time.time()
