@@ -1,0 +1,21 @@
+
+
+# Configures the connection to a Matey instance.
+# 
+# host_url: The URL of the Matey instance.
+# api_key: The API key for the Matey instance.
+# instance_name: A name to identify the Matey instance.
+# verify (optional): Whether to verify the SSL/TLS certificate of the Sonarr instance.
+
+
+Radarr:
+- host_url: https://radarr.something.or.ip/
+  api_key: XXXXXXXxxxxXXxxXXxXXXXXXXXXXXXXX
+  instance_name: radarr_one
+  verify: False
+
+Sonarr:
+- host_url: https://sonarr.something.or.ip/
+  api_key: XXXXXXXxxxxXXxxXXxXXXXXXXXXXXXXX
+  instance_name: sonarr_one
+  verify: False
