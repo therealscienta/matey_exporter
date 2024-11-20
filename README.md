@@ -1,4 +1,4 @@
-# Prometheus Matey Exporter
+# Matey Exporter
 
 A Prometheus exporter for collecting and exposing metrics from Matey services.
 
@@ -46,9 +46,18 @@ By using the make file the exporter is compiled using Pyinstaller and installed 
 
 Edit configuration file `config.yml` and then run: `make install`.
 
-### From Docker
+### As [Docker container](https://hub.docker.com/r/therealscienta/matey_exporter)
 
-`TODO`
+Inside the directory, run the following command:
+```bash
+docker run -d -p 8000:8000 -v /path/to/config.yaml:/app/config.yaml matey-exporter:latest
+```
+
+Or as a compose file:
+```bash
+docker compose up -d
+```
+
 
 ## Configuration
 [Configuration details will be added]
