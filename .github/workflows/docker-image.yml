@@ -16,3 +16,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${{ github.repository }}:$(date +%s) --tag ${{ github.repository }}:latest
+    - name: Push Docker image to registry
+      run: docker push ${{ github.repository }} --all-tags
