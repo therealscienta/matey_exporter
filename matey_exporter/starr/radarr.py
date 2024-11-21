@@ -3,26 +3,25 @@ import time
 from prometheus_client import Gauge, Summary
 from pyarr import RadarrAPI
 
-from matey_exporter.common import exception_handler
 from .base import BaseStarrClass
 
 class MateyRadarrPrometheusMetrics:
     def __init__(self):
-        self.radarr_movies =                    Gauge('radarr_movies',            'Number of total movies',           labelnames=['instance'])
-        self.radarr_missing_movies =            Gauge('radarr_missing_movies',    'Number of total missing movies',   labelnames=['instance'])
-        self.radarr_monitored_movies =          Gauge('radarr_monitored_movies',  'Number of Monitored movies',       labelnames=['instance'])
-        self.radarr_movies_in_queue =           Gauge('radarr_movies_in_queue',   'Number of movies in queue',        labelnames=['instance'])
-        self.radarr_queue_errors_bool =         Gauge('radarr_queue_errors_bool',            'Queue errors bool',               labelnames=['instance'])
-        self.radarr_queue_warnings_bool =       Gauge('radarr_queue_warnings_bool',          'Queue warnings bool',              labelnames=['instance'])
-        self.radarr_queue_unknownerrors_bool =  Gauge('radarr_queue_unknownerrors_bool',     'Queue unknown errors bool',        labelnames=['instance'])
-        self.radarr_queue_unknownwarnings_bool= Gauge('radarr_queue_unknownwarnings_bool',   'Queue unknown warnings bool',      labelnames=['instance'])
-        self.radarr_health_errors =             Gauge('radarr_health_errors',           'Radarr health errors',             labelnames=['instance'])
-        self.radarr_health_warnings =           Gauge('radarr_health_warnings',         'Radarr health warnings',           labelnames=['instance'])
-        self.radarr_health_ok =                 Gauge('radarr_health_ok',               'Radarr health unknown Errors',     labelnames=['instance'])
-        self.radarr_health_notice =             Gauge('radarr_health_unknownWarnings',  'Radarr unkown warnings',           labelnames=['instance'])
+        self.radarr_movies =                    Gauge('radarr_movies',                      'Number of total movies',           labelnames=['instance'])
+        self.radarr_missing_movies =            Gauge('radarr_missing_movies',              'Number of total missing movies',   labelnames=['instance'])
+        self.radarr_monitored_movies =          Gauge('radarr_monitored_movies',            'Number of Monitored movies',       labelnames=['instance'])
+        self.radarr_movies_in_queue =           Gauge('radarr_movies_in_queue',             'Number of movies in queue',        labelnames=['instance'])
+        self.radarr_health_errors =             Gauge('radarr_health_errors',               'Radarr health errors',             labelnames=['instance'])
+        self.radarr_health_warnings =           Gauge('radarr_health_warnings',             'Radarr health warnings',           labelnames=['instance'])
+        self.radarr_health_ok =                 Gauge('radarr_health_ok',                   'Radarr health unknown Errors',     labelnames=['instance'])
+        self.radarr_health_notice =             Gauge('radarr_health_unknownWarnings',      'Radarr unkown warnings',           labelnames=['instance'])
+        self.radarr_queue_errors_bool =         Gauge('radarr_queue_errors_bool',           'Queue errors bool',                labelnames=['instance'])
+        self.radarr_queue_warnings_bool =       Gauge('radarr_queue_warnings_bool',         'Queue warnings bool',              labelnames=['instance'])
+        self.radarr_queue_unknownerrors_bool =  Gauge('radarr_queue_unknownerrors_bool',    'Queue unknown errors bool',        labelnames=['instance'])
+        self.radarr_queue_unknownwarnings_bool= Gauge('radarr_queue_unknownwarnings_bool',  'Queue unknown warnings bool',      labelnames=['instance'])
         
-        self.radarr_get_movie_api_query_latency_seconds =   Summary('radarr_get_movie_api_query_latency_seconds', 'Latency for a single API query', labelnames=['instance'])
-        self.radarr_data_processing_latency_seconds =   Summary('radarr_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+        self.radarr_get_movie_api_query_latency_seconds =   Summary('radarr_get_movie_api_query_latency_seconds', 'Latency for a single API query',       labelnames=['instance'])
+        self.radarr_data_processing_latency_seconds =       Summary('radarr_data_processing_latency_seconds',     'Latency for exporter data processing', labelnames=['instance'])
         
 
 class MateyRadarr(BaseStarrClass):
@@ -78,7 +77,7 @@ class MateyRadarr(BaseStarrClass):
         self.metrics.radarr_health_ok.labels(instance=self.instance_name).set(health.get('ok'))
         self.metrics.radarr_health_notice.labels(instance=self.instance_name).set(health.get('notice'))
     
-    @exception_handler
+
     def query_and_process_data(self):
         '''Run all query and process methods in the Radarr instance'''
 
