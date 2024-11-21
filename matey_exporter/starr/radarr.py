@@ -3,6 +3,7 @@ import time
 from prometheus_client import Gauge, Summary
 from pyarr import RadarrAPI
 
+from matey_exporter.common import MateyQueryAndProcessDataError
 from .base import BaseStarrClass
 
 class MateyRadarrPrometheusMetrics:
@@ -81,7 +82,10 @@ class MateyRadarr(BaseStarrClass):
     def query_and_process_data(self):
         '''Run all query and process methods in the Radarr instance'''
 
-        self.get_movie_data_task()
-        self.get_queue_data_task()
-        self.get_queue_status_data_task()
-        self.get_health_data_task()
+        try:
+            self.get_movie_data_task()
+            self.get_queue_data_task()
+            self.get_queue_status_data_task()
+            self.get_health_data_task()
+        except Exception as e:
+            raise MateyQueryAndProcessDataError(self.instance_name, e)
