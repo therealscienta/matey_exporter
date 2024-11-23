@@ -3,7 +3,7 @@ import asyncio
 from prometheus_client import Summary
 
 from matey_exporter.utils import get_config, load_sources
-from matey_exporter.common import logger
+from matey_exporter.common import logger, MateyQueryAndProcessDataError
 
 from pprint import pp
 
@@ -16,20 +16,25 @@ async def async_start_matey_exporter(sources: set, interval: int) -> None:
                                                       labelnames=['job'])
     while True:
         
-        start_time = time.time()
-        await_tasks = set()
-                
-        # Gather all tasks from sources and run them concurrently.
-        # In Python <3.13 this will only improve performance for
-        # api calls within a thread, but might gain better performance
-        # from future Python version with unlocked GIL.
-        for source in sources: await_tasks.add(asyncio.to_thread(source.query_and_process_data))
-                
-        # Wait for all tasks to complete
-        await asyncio.gather(*await_tasks)
+        try:
+            start_time = time.time()
+            await_tasks = set()
+                    
+            # Gather all tasks from sources and run them concurrently.
+            # In Python <3.13 this will only improve performance for
+            # api calls within a thread, but might gain better performance
+            # from future Python version with unlocked GIL.
+            for source in sources: await_tasks.add(asyncio.to_thread(source.query_and_process_data))
+                   
+            # Wait for all tasks to complete
+            await asyncio.gather(*await_tasks)
 
-        # TODO: Evaluate what operations should be timed.
-        matey_exporter_data_query_time_seconds.labels('matey_exporter').observe(time.time() - start_time)
+            # TODO: Evaluate what operations should be timed.
+            matey_exporter_data_query_time_seconds.labels('matey_exporter').observe(time.time() - start_time)
+        
+        except Exception as e:
+            logger.error(e)
+        
         await asyncio.sleep(sleep_time)
 
 
