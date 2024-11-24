@@ -6,15 +6,19 @@ A Prometheus exporter for collecting and exposing metrics from Matey services.
 
 Prometheus Matey Exporter enables monitoring of services used by virtual sailors of the seven seas, by collecting relevant metrics and exposing them in Prometheus format. This makes it easy to integrate Matey service monitoring into your existing Prometheus ecosystem.
 
+The main difference from other Prometheus exporters is that Matey Exporter is designed to work with multiple services from a single exporter instance, as well as support a wider variety of services.
+
 The project is still in early stages and missing a lot of supported metrics. Feel free to contribute and help improve it.
 
 Currently supported services metrics:
 * Radarr
 * Sonarr
+* qBittorrent
+* Transmission
 
 ## Installation
 
-To get started with matey_exporter, you’ll need Python installed. This project is tested with Python >=3.10.
+To get started with matey_exporter, you’ll need Python or Docker installed. This project is tested with Python >=3.10.
 
 #### Requirements
 
@@ -42,6 +46,8 @@ pip install -r requirements.txt
 Edit configuration file `config.yml` and then start the app by running `python app.py`.
 
 ### From Makefile
+(Only tested on Debian)
+
 By using the make file the exporter is compiled using Pyinstaller and installed on the system as a runnable service.
 
 Edit configuration file `config.yml` and then run: `make install`.
@@ -50,7 +56,7 @@ Edit configuration file `config.yml` and then run: `make install`.
 
 Inside the directory, run the following command:
 ```bash
-docker run -d -p 8000:8000 -v /path/to/config.yaml:/app/config.yaml matey-exporter:latest
+docker run -d -p 8000:8000 -v ./config.yaml:/app/config.yaml matey_exporter:latest
 ```
 
 Or as a compose file:
@@ -58,9 +64,38 @@ Or as a compose file:
 docker compose up -d
 ```
 
+To run latest development image, use `dev-latest`
 
 ## Configuration
 [Configuration details will be added]
+
+## Data collection agent
+
+Configuration snippets for data collecting agents.
+
+Grafana Alloy:
+```
+prometheus.scrape "matey" {
+  forward_to = [prometheus.remote_write.<prometheus_remote_write_component_name>.receiver,]
+  scrape_interval = "30s"
+  targets = [
+    {
+      "__address__" = "localhost:8000",
+      "job" = "matey",
+    },
+  ]
+}
+```
+
+Prometheus node exporter:
+
+```yaml
+scrape_configs:
+- job_name: 'matey'
+  scrape_interval: 30s
+  static_configs:
+  - targets: ['localhost:8000']
+```
 
 
 ## Development

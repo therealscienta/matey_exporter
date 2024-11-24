@@ -1,10 +1,10 @@
-name: Docker Image CI
+name: Docker dev Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
 
@@ -18,7 +18,7 @@ jobs:
       id: slugify
       uses: eltimn/slugify-action@v2.0.1
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-${{steps.slugify.outputs.sha}} --tag ${{ github.repository }}:latest
+      run: docker build . --file Dockerfile --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-${{steps.slugify.outputs.sha}} --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-latest
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
@@ -28,4 +28,3 @@ jobs:
       run: docker push ${{ github.repository }} --all-tags
     - name: Logout from Docker Hub
       run: docker logout
-

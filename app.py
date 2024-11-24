@@ -57,10 +57,9 @@ if __name__ == '__main__':
         start_matey_exporter(config_file=config_file, interval=interval)
     except (OSError, PermissionError) as e:
         logger.error(f'Failed to start server: {e}')
-        sys.exit(1)
     except KeyboardInterrupt:
         logger.error(f'Matey exporter was interrupted.')
-        sys.exit(1)
     except Exception as e:
         logger.error(f'Unexpected error: {e}')
+    finally:
         sys.exit(1)

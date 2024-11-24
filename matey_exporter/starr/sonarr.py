@@ -1,9 +1,8 @@
 
-import time
 from prometheus_client import Gauge, Summary
 from pyarr import SonarrAPI
 
-from matey_exporter.common import exception_handler
+from matey_exporter.common import MateyQueryAndProcessDataError
 from .base import BaseStarrClass
 
 class MateySonarrPrometheusMetrics:
@@ -58,13 +57,15 @@ class MateySonarr(BaseStarrClass):
     def get_health_data_task(self):
         data = self.api.get_health()
         self.metrics.sonarr_health_notifications.labels(instance=self.instance_name).set(len(data))
-    
-    @exception_handler    
+      
     def query_and_process_data(self):
         '''Run all query and process methods in the Sonarr instance'''
-        self.get_series_data_task()
-        self.get_wanted_series_data_task()
-        self.get_episodes_in_queue_data_task()
-        self.get_health_data_task()
+        try:
+            self.get_series_data_task()
+            self.get_wanted_series_data_task()
+            self.get_episodes_in_queue_data_task()
+            self.get_health_data_task()
+        except Exception as e:
+            raise MateyQueryAndProcessDataError(self.instance_name, e)
 
 
