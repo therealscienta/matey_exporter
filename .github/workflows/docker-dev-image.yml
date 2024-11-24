@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v4
     - name: "Run slugify"
       id: slugify
-      uses: eltimn/slugify-action@v2
+      uses: eltimn/slugify-action@v2.0.1
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-${{steps.slugify.outputs.sha}} --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-latest
     - name: Login to Docker Hub
