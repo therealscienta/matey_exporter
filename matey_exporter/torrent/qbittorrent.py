@@ -3,23 +3,37 @@ import time
 from prometheus_client import Gauge, Summary
 from qbittorrent import Client
 
+from matey_exporter.common import MateyQueryAndProcessDataError
 from .base import BaseTorrentClass
         
 class MateyQbittorrentPrometheusMetrics:
     def __init__(self):
-        self.qbittorrent_torrents_total =              Gauge('qbittorrent_torrents_total',            'Number of total torrents',           labelnames=['instance'])
-        # self.qbittorrent_wanted_torrents_total =       Gauge('qbittorrent_wanted_torrents_total',     'Number of total missing torrents',   labelnames=['instance'])
-        # self.qbittorrent_wanted_episodes_total =     Gauge('qbittorrent_wanted_episodes_total',   'Number of total missing episodes', labelnames=['instance'])
-        # self.qbittorrent_episodes_in_queue_total =   Gauge('qbittorrent_episodes_in_queue_total', 'Number of episodes in queue',      labelnames=['instance'])
-        # self.qbittorrent_monitored_torrents_total =    Gauge('qbittorrent_monitored_torrents_total',  'Number of Monitored torrents',       labelnames=['instance'])
-        # self.qbittorrent_upcoming_torrents_total =     Gauge('qbittorrent_upcoming_torrents_total',   'Number of Upcoming torrents',        labelnames=['instance'])
-        # self.qbittorrent_ended_torrents_total =        Gauge('qbittorrent_ended_torrents_total',      'Number of Ended torrents',           labelnames=['instance'])
-        # self.qbittorrent_continuing_torrents_total =   Gauge('qbittorrent_continuing_torrents_total', 'Number of Continuing torrents',      labelnames=['instance'])
-        # self.qbittorrent_health_notifications =      Gauge('qbittorrent_health_notifications',    'Number of Health notifications',   labelnames=['instance'])
+        self.qbittorrent_torrents_error =           Gauge('qbittorrent_torrents_leeching',      'Number of leeching torrents',              labelnames=['instance'])
+        self.qbittorrent_torrents_missingFiles =    Gauge('qbittorrent_torrents_missingFiles',  'Number of torrents with missing files',    labelnames=['instance'])
+        self.qbittorrent_torrents_allocating =      Gauge('qbittorrent_torrents_allocating',    'Number of torrents allocating space',      labelnames=['instance'])
+        self.qbittorrent_torrents_moving =          Gauge('qbittorrent_torrents_moving',        'Number of torrents moving',                labelnames=['instance'])
+        self.qbittorrent_torrents_metaDL =          Gauge('qbittorrent_torrents_metaDL',        'Number of torrents downloading metadata',  labelnames=['instance'])
+        self.qbittorrent_torrents_unknown =         Gauge('qbittorrent_torrents_unknown',       'Number of torrents in unknown state',      labelnames=['instance'])
+        self.qbittorrent_torrents_uploading =       Gauge('qbittorrent_torrents_uploading',     'Number of uploading torrents',             labelnames=['instance'])
+        self.qbittorrent_torrents_downloading =     Gauge('qbittorrent_torrents_downloading',   'Number of downloading torrents',           labelnames=['instance'])
+        self.qbittorrent_torrents_stalledUP =       Gauge('qbittorrent_torrents_stalledUP',     'Number of stalledUP torrents',             labelnames=['instance'])
+        self.qbittorrent_torrents_stalledDL =       Gauge('qbittorrent_torrents_stalledDL',     'Number of stalledDL torrents',             labelnames=['instance'])
+        self.qbittorrent_torrents_checkingUP =      Gauge('qbittorrent_torrents_checkingUP',    'Number of checkingUP torrents',            labelnames=['instance'])
+        self.qbittorrent_torrents_checkingDL =      Gauge('qbittorrent_torrents_checkingDL',    'Number of checkingDL torrents',            labelnames=['instance'])
+        self.qbittorrent_torrents_forcedUP =        Gauge('qbittorrent_torrents_forcedUP',      'Number of forcedUP torrents',              labelnames=['instance'])
+        self.qbittorrent_torrents_forcedDL =        Gauge('qbittorrent_torrents_forcedDL',      'Number of forcedDL torrents',              labelnames=['instance'])
+        self.qbittorrent_torrents_pausedUP =        Gauge('qbittorrent_torrents_pausedUP',      'Number of pausedUP torrents',              labelnames=['instance'])
+        self.qbittorrent_torrents_pausedDL =        Gauge('qbittorrent_torrents_pausedDL',      'Number of pausedDL torrents',              labelnames=['instance'])
+        self.qbittorrent_torrents_queuedUP =        Gauge('qbittorrent_torrents_queuedUP',      'Number of queuedUP torrents',              labelnames=['instance'])
+        self.qbittorrent_torrents_queuedDL =        Gauge('qbittorrent_torrents_queuedDL',      'Number of queuedDL torrents',              labelnames=['instance'])
+        self.qbittorrent_torrents_stoppedUP =       Gauge('qbittorrent_torrents_stoppedUP',     'Number of stoppedUP torrents',             labelnames=['instance'])
+        self.qbittorrent_torrents_stoppedDL =       Gauge('qbittorrent_torrents_stoppedDL',     'Number of stoppedDL torrents',             labelnames=['instance'])
+        self.qbittorrent_torrents_checkingResumeData =  Gauge('qbittorrent_torrents_checkingResumeData',    'Number of torrents checking resume data',  labelnames=['instance'])
+
         
         self.qbittorrent_api_query_latency_seconds =         Summary('qbittorrent_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.qbittorrent_data_processing_latency_seconds =   Summary('qbittorrent_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
-
+	
     
 class MateyQbittorrent(BaseTorrentClass):
     
@@ -28,39 +42,79 @@ class MateyQbittorrent(BaseTorrentClass):
         self.api.login(kwargs.get('username'), self.api_key)
         self.metrics = MateyQbittorrentPrometheusMetrics()
         
-    def get_update_tasks(self):
-        '''Get all update tasks to run for the Sonarr instance'''
-        yield self.get_series_data_task
-        yield self.get_wanted_series_data_task
-        yield self.get_episodes_in_queue_data_task
-        yield self.get_health_data_task
-        
-    def update(self):
-        start_time = time.time()
+    def filter_data(data: dict) -> dict:
+        '''
+        Filter returned torrent data based on state of torrent. 
+        Dictionary keys are based on states from official API documentation:
+        https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
+        '''
+        data_dict = {
+            'error': 0,
+            'missingFiles': 0,
+            'allocating': 0,
+            'checkingResumeData': 0, # Only on startup, ignore.
+            'moving': 0,
+            'metaDL': 0, 
+            'unknown': 0,
+            'uploading': 0,
+            'downloading': 0,
+            'stalledUP': 0,
+            'stalledDL': 0,
+            'checkingUP': 0,
+            'checkingDL': 0,
+            'forcedUP': 0,
+            'forcedDL': 0,
+            'pausedUP': 0,
+            'pausedDL': 0,
+            'queuedUP': 0,
+            'queuedDL': 0,
+            'stoppedUP': 0, # The stopped states are not included in the API docs,
+            'stoppedDL': 0, # but was found during testing.
+        }
+        for d in data: data_dict[d.get('state')] += 1
+        return data_dict
+
+    def get_torrent_data(self) -> None:
+        '''
+        Query qBittorrent API for torrent data and process results.
+        '''
+
+        start_api_query_latency_time = time.time()
         data = self.api.torrents()
-        self.qbittorrent_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_time) # Time first API request TODO
+        self.metrics.qbittorrent_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
         
-        # episoded_wanted = len(self.api.get_wanted(page_size=9999)['records']) # TODO check if page_size can be something else
-        # episodes_qeued = len(self.api.get_queue(page_size=9999)['records'])
-        # health = len(self.api.get_health())
-        # status = {'upcoming': 0, 'ended': 0, 'continuing': 0}
-        # monitored = 0
-        # missing_torrents = 0
-        torrents_total = len(data)
+        start_data_processing_latency_time = time.time()
+        filtered_data = self.filter_data(data)
         
-        # for d in data:
-        #     status[d['status']] += 1
-        #     if d['monitored'] == True : monitored += 1
-        #     if d['status'] == 'upcoming' or d['statistics']['sizeOnDisk'] == 0: missing_torrents += 1
+        self.metrics.qbittorrent_torrents_error.labels(self.instance_name).set(filtered_data.get('error'))
+        self.metrics.qbittorrent_torrents_missingFiles.labels(self.instance_name).set(filtered_data.get('missingFiles'))
+        self.metrics.qbittorrent_torrents_allocating.labels(self.instance_name).set(filtered_data.get('allocating'))
+        self.metrics.qbittorrent_torrents_checkingResumeData.labels(self.instance_name).set(filtered_data.get('checkingResumeData'))
+        self.metrics.qbittorrent_torrents_moving.labels(self.instance_name).set(filtered_data.get('moving'))
+        self.metrics.qbittorrent_torrents_metaDL.labels(self.instance_name).set(filtered_data.get('metaDL'))
+        self.metrics.qbittorrent_torrents_unknown.labels(self.instance_name).set(filtered_data.get('unknown'))
+        self.metrics.qbittorrent_torrents_uploading.labels(self.instance_name).set(filtered_data.get('uploading'))
+        self.metrics.qbittorrent_torrents_downloading.labels(self.instance_name).set(filtered_data.get('downloading'))
+        self.metrics.qbittorrent_torrents_stalledUP.labels(self.instance_name).set(filtered_data.get('stalledUP'))
+        self.metrics.qbittorrent_torrents_stalledDL.labels(self.instance_name).set(filtered_data.get('stalledDL'))
+        self.metrics.qbittorrent_torrents_checkingUP.labels(self.instance_name).set(filtered_data.get('checkingUP'))
+        self.metrics.qbittorrent_torrents_checkingDL.labels(self.instance_name).set(filtered_data.get('checkingDL'))
+        self.metrics.qbittorrent_torrents_forcedUP.labels(self.instance_name).set(filtered_data.get('forcedUP'))
+        self.metrics.qbittorrent_torrents_forcedDL.labels(self.instance_name).set(filtered_data.get('forcedDL'))
+        self.metrics.qbittorrent_torrents_pausedUP.labels(self.instance_name).set(filtered_data.get('pausedUP'))
+        self.metrics.qbittorrent_torrents_pausedDL.labels(self.instance_name).set(filtered_data.get('pausedDL'))
+        self.metrics.qbittorrent_torrents_queuedUP.labels(self.instance_name).set(filtered_data.get('queuedUP'))
+        self.metrics.qbittorrent_torrents_queuedDL.labels(self.instance_name).set(filtered_data.get('queuedDL'))
+        self.metrics.qbittorrent_torrents_stoppedUP.labels(self.instance_name).set(filtered_data.get('stoppedUP'))
+        self.metrics.qbittorrent_torrents_stoppedDL.labels(self.instance_name).set(filtered_data.get('stoppedDL'))
+        
+        self.metrics.qbittorrent_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
+                                        
+        
 
-        self.qbittorrent_data_processing_latency_seconds.labels(instance=self.instance_name).observe(time.time() - start_time) # Time data processing
-        self.qbittorrent_torrents_total.labels(instance=self.instance_name).set(torrents_total)
-        # self.qbittorrent_wanted_torrents_total.labels(instance=self.instance_name).set(missing_torrents)
-        # self.qbittorrent_wanted_episodes_total.labels(instance=self.instance_name).set(episoded_wanted)
-        # self.qbittorrent_episodes_in_queue_total.labels(instance=self.instance_name).set(episodes_qeued)
-        # self.qbittorrent_monitored_torrents_total.labels(instance=self.instance_name).set(monitored)
-        # self.qbittorrent_upcoming_torrents_total.labels(instance=self.instance_name).set(status['upcoming'])
-        # self.qbittorrent_ended_torrents_total.labels(instance=self.instance_name).set(status['ended'])
-        # self.qbittorrent_continuing_torrents_total.labels(instance=self.instance_name).set(status['continuing'])
-        # self.qbittorrent_health_notifications.labels(instance=self.instance_name).set(health)
-
+    def query_and_process_data(self) -> None:
+        '''Run all query and process methods in the Qbittorrent instance'''
+        try:
+            self.get_torrent_data()
+        except Exception as e:
+            raise MateyQueryAndProcessDataError(self.instance_name, e)
