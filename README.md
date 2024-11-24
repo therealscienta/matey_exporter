@@ -13,7 +13,7 @@ The project is still in early stages and missing a lot of supported metrics. Fee
 Currently supported services metrics:
 * Radarr
 * Sonarr
-* Qbittorrent
+* qBittorrent
 * Transmission
 
 ## Installation
@@ -64,6 +64,7 @@ Or as a compose file:
 docker compose up -d
 ```
 
+To run latest development image, use `dev-latest`
 
 ## Configuration
 [Configuration details will be added]
