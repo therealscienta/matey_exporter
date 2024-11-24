@@ -1,7 +1,7 @@
 
 import time
 from prometheus_client import Gauge, Summary
-from qbittorrent import Client
+import qbittorrentapi
 
 from matey_exporter.common import MateyQueryAndProcessDataError
 from .base import BaseTorrentClass
@@ -38,9 +38,13 @@ class MateyQbittorrentPrometheusMetrics:
 class MateyQbittorrent(BaseTorrentClass):
     
     def __init__(self, **kwargs):
-        super().__init__(Client(self.host_url, self.api_key, verify=kwargs.get('verify')), **kwargs)
-        self.api.login(kwargs.get('username'), self.api_key)
+        super().__init__(qbittorrentapi.Client(**{
+                        'host': self.host_url, 
+                        'username' : kwargs.get('username'), 
+                        'password' : self.api_key}), **kwargs)
+        self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
         self.metrics = MateyQbittorrentPrometheusMetrics()
+
         
     def filter_data(data: dict) -> dict:
         '''
@@ -52,7 +56,7 @@ class MateyQbittorrent(BaseTorrentClass):
             'error': 0,
             'missingFiles': 0,
             'allocating': 0,
-            'checkingResumeData': 0, # Only on startup, ignore.
+            'checkingResumeData': 0,
             'moving': 0,
             'metaDL': 0, 
             'unknown': 0,
@@ -71,17 +75,20 @@ class MateyQbittorrent(BaseTorrentClass):
             'stoppedUP': 0, # The stopped states are not included in the API docs,
             'stoppedDL': 0, # but was found during testing.
         }
-        for d in data: data_dict[d.get('state')] += 1
+        for torrent in data: data_dict[torrent.state] += 1
         return data_dict
+
 
     def get_torrent_data(self) -> None:
         '''
         Query qBittorrent API for torrent data and process results.
         '''
-
+        
+        self.api.auth_log_in()
         start_api_query_latency_time = time.time()
-        data = self.api.torrents()
+        data = self.api.torrents_info()
         self.metrics.qbittorrent_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
+        self.api.auth_log_out()
         
         start_data_processing_latency_time = time.time()
         filtered_data = self.filter_data(data)
