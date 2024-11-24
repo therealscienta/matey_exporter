@@ -3,19 +3,18 @@ import time
 from prometheus_client import Gauge, Summary
 from transmission_rpc import Client
 
+from matey_exporter.common import MateyQueryAndProcessDataError
 from .base import BaseTorrentClass
 
 class MateyTransmissionPrometheusMetrics:
     def __init__(self):
-        self.transmission_torrents_total =              Gauge('transmission_torrents_total',            'Number of total torrents',           labelnames=['instance'])
-        # self.transmission_wanted_torrents_total =       Gauge('transmission_wanted_torrents_total',     'Number of total missing torrents',   labelnames=['instance'])
-        # self.transmission_wanted_episodes_total =     Gauge('transmission_wanted_episodes_total',   'Number of total missing episodes', labelnames=['instance'])
-        # self.transmission_episodes_in_queue_total =   Gauge('transmission_episodes_in_queue_total', 'Number of episodes in queue',      labelnames=['instance'])
-        # self.transmission_monitored_torrents_total =    Gauge('transmission_monitored_torrents_total',  'Number of Monitored torrents',       labelnames=['instance'])
-        # self.transmission_upcoming_torrents_total =     Gauge('transmission_upcoming_torrents_total',   'Number of Upcoming torrents',        labelnames=['instance'])
-        # self.transmission_ended_torrents_total =        Gauge('transmission_ended_torrents_total',      'Number of Ended torrents',           labelnames=['instance'])
-        # self.transmission_continuing_torrents_total =   Gauge('transmission_continuing_torrents_total', 'Number of Continuing torrents',      labelnames=['instance'])
-        # self.transmission_health_notifications =      Gauge('transmission_health_notifications',    'Number of Health notifications',   labelnames=['instance'])
+        self.check_pending_torrents =       Gauge('check_pending_torrents',      'Number of check pending torrents',    labelnames=['instance'])
+        self.checking_torrents =            Gauge('checking_torrents',           'Number of checking torrents',         labelnames=['instance'])
+        self.downloading_torrents =         Gauge('downloading_torrents',        'Number of downloading torrents',      labelnames=['instance'])
+        self.download_pending_torrents =    Gauge('download_pending_torrents',   'Number of download pending torrents', labelnames=['instance'])
+        self.seeding_torrents =             Gauge('seeding_torrents',            'Number of seeding torrents',          labelnames=['instance'])
+        self.seed_pending_torrents =        Gauge('seed_pending_torrents',       'Number of seed pending torrents',     labelnames=['instance'])
+        self.stopped_torrents =             Gauge('stopped_torrents',            'Number of stopped torrents',          labelnames=['instance'])
         
         self.transmission_api_query_latency_seconds =         Summary('transmission_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
@@ -26,35 +25,54 @@ class MateyTransmission(BaseTorrentClass):
         super().__init__(Client(self.host_url, self.api_key), **kwargs)
         self.api._http_session = kwargs.get('verify') # TODO: Using private attribute
         self.metrics = MateyTransmissionPrometheusMetrics
-        
 
-        
-    def update(self):
-        start_time = time.time()
+
+    def filter_data(data: dict) -> dict:
+        '''
+        Filter returned torrent data based on state of torrent. 
+        Dictionary keys are based on states from official API documentation:
+        https://transmission-rpc.readthedocs.io/en/v7.0.11/torrent.html#transmission_rpc.Torrent.status
+        '''
+        data_dict = {
+            'check pending': 0,
+            '‘checking’': 0,
+            '‘downloading’': 0,
+            'download pending': 0,
+            '‘seeding’': 0,
+            'seed pending': 0, 
+            'stopped': 0,
+        }
+        for d in data: data_dict[d.get('status')] += 1
+        return data_dict
+
+
+    def get_torrent_data(self) -> None:
+        '''
+        Query Transmission API for torrent data and process results.
+        '''
+
+        start_api_query_latency_time = time.time()
         data = self.api.get_torrents()
-        self.transmission_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_time) # Time first API request TODO
+        self.metrics.transmission_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
         
-        # episoded_wanted = len(self.api.get_wanted(page_size=9999)['records']) # TODO check if page_size can be something else
-        # episodes_qeued = len(self.api.get_queue(page_size=9999)['records'])
-        # health = len(self.api.get_health())
-        # status = {'upcoming': 0, 'ended': 0, 'continuing': 0}
-        # monitored = 0
-        # missing_torrents = 0
-        torrents_total = len(data)
+        start_data_processing_latency_time = time.time()
+        filtered_data = self.filter_data(data)
         
-        # for d in data:
-        #     status[d['status']] += 1
-        #     if d['monitored'] == True : monitored += 1
-        #     if d['status'] == 'upcoming' or d['statistics']['sizeOnDisk'] == 0: missing_torrents += 1
+        self.metrics.check_pending_torrents.labels(self.instance_name).set(filtered_data.get('check pending'))
+        self.metrics.checking_torrents.labels(self.instance_name).set(filtered_data.get('checking'))
+        self.metrics.downloading_torrents.labels(self.instance_name).set(filtered_data.get('downloading'))
+        self.metrics.download_pending_torrents.labels(self.instance_name).set(filtered_data.get('download pending'))
+        self.metrics.seeding_torrents.labels(self.instance_name).set(filtered_data.get('seeding'))
+        self.metrics.seed_pending_torrents.labels(self.instance_name).set(filtered_data.get('seed pending'))
+        self.metrics.stopped_torrents.labels(self.instance_name).set(filtered_data.get('stopped'))
+        
+        self.metrics.transmission_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
+                                        
 
-        self.transmission_data_processing_latency_seconds.labels(instance=self.instance_name).observe(time.time() - start_time) # Time data processing
-        self.transmission_torrents_total.labels(instance=self.instance_name).set(torrents_total)
-        # self.transmission_wanted_torrents_total.labels(instance=self.instance_name).set(missing_torrents)
-        # self.transmission_wanted_episodes_total.labels(instance=self.instance_name).set(episoded_wanted)
-        # self.transmission_episodes_in_queue_total.labels(instance=self.instance_name).set(episodes_qeued)
-        # self.transmission_monitored_torrents_total.labels(instance=self.instance_name).set(monitored)
-        # self.transmission_upcoming_torrents_total.labels(instance=self.instance_name).set(status['upcoming'])
-        # self.transmission_ended_torrents_total.labels(instance=self.instance_name).set(status['ended'])
-        # self.transmission_continuing_torrents_total.labels(instance=self.instance_name).set(status['continuing'])
-        # self.transmission_health_notifications.labels(instance=self.instance_name).set(health)
+    def query_and_process_data(self) -> None:
+        '''Run all query and process methods in the Transmission instance'''
+        try:
+            self.get_torrent_data()
+        except Exception as e:
+            raise MateyQueryAndProcessDataError(self.instance_name, e)
 

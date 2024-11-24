@@ -14,6 +14,7 @@ Currently supported services metrics:
 * Radarr
 * Sonarr
 * Qbittorrent
+* Transmission
 
 ## Installation
 
