@@ -41,7 +41,7 @@ class MateyQbittorrent(BaseTorrentClass):
     
     def __init__(self, **kwargs):
         super().__init__(qbittorrentapi.Client(**{
-                        'host': self.host_url, 
+                        'host': kwargs.get('host_url'), 
                         'username' : kwargs.get('username'), 
                         'password' : self.api_key}), **kwargs)
         self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
