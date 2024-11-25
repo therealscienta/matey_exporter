@@ -54,9 +54,12 @@ def validate_yaml_config(config: dict[str]) -> bool:
         return True
     except Exception as e:
         e = re.sub(r"'api_key': '\S*',", '', str(e)) # Remove api_key from logging output
-        # Get instance name from error message.
-        instance = e.splitlines()[1].split()[-3] 
-        error = e.splitlines()[-2]
+        try:
+            instance = e.splitlines()[1].split()[-3] # Get instance name from error message.
+            error = e.splitlines()[-2]
+        except IndexError:
+            instance = 'Unknown'
+            error = e
         logger.critical(f'Configuration is invalid: {error} {instance}')
         sys.exit('Exiting.')
         
