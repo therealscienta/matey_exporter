@@ -33,7 +33,7 @@ def validate_yaml_config(config: dict[str]) -> bool:
 
     # Regex for validating config file
     regex_url = re.compile(r"^https?:\/\/")
-    regex_api_key = re.compile(r"^[a-zA-Z0-9]{32}$")
+    # regex_api_key = re.compile(r"^[a-zA-Z0-9]{32}$") TODO: Add regex for api_key
 
     # Load available datasource types to use for schema evaluation
     datasources_schema_evalutation = set(key.capitalize() for key in loaders_dict.keys())
@@ -41,7 +41,7 @@ def validate_yaml_config(config: dict[str]) -> bool:
     config_schema = Schema({
         Or(*datasources_schema_evalutation): [{
             "host_url": lambda str: regex_url.match(str),
-            "api_key": lambda str: regex_api_key.match(str),
+            "api_key": str, #lambda str: regex_api_key.match(str),
             "instance_name": str,
             Optional("verify"): bool,
             },
@@ -57,7 +57,7 @@ def validate_yaml_config(config: dict[str]) -> bool:
         # Get instance name from error message.
         instance = e.splitlines()[1].split()[-3] 
         error = e.splitlines()[-2]
-        logger.critical(f'Configuration is invalid: {error} {instance}\n')
+        logger.critical(f'Configuration is invalid: {error} {instance}')
         sys.exit('Exiting.')
         
         

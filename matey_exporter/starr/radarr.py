@@ -3,9 +3,10 @@ import time
 from prometheus_client import Gauge, Summary
 from pyarr import RadarrAPI
 
-from matey_exporter.common import MateyQueryAndProcessDataError
+from matey_exporter.common import MateyQueryAndProcessDataError, singleton
 from .base import BaseStarrClass
 
+@singleton
 class MateyRadarrPrometheusMetrics:
     def __init__(self):
         self.radarr_movies =                    Gauge('radarr_movies',                      'Number of total movies',           labelnames=['instance'])
@@ -23,13 +24,14 @@ class MateyRadarrPrometheusMetrics:
         
         self.radarr_get_movie_api_query_latency_seconds =   Summary('radarr_get_movie_api_query_latency_seconds', 'Latency for a single API query',       labelnames=['instance'])
         self.radarr_data_processing_latency_seconds =       Summary('radarr_data_processing_latency_seconds',     'Latency for exporter data processing', labelnames=['instance'])
-        
+
+radarr_metrics = MateyRadarrPrometheusMetrics()
 
 class MateyRadarr(BaseStarrClass):
     
     def __init__(self, **kwargs):
         super().__init__(RadarrAPI, **kwargs)
-        self.metrics = MateyRadarrPrometheusMetrics()
+        self.metrics = radarr_metrics
     
     
     def get_movie_data_task(self):

@@ -3,9 +3,10 @@ import time
 from prometheus_client import Gauge, Summary
 import qbittorrentapi
 
-from matey_exporter.common import MateyQueryAndProcessDataError
+from matey_exporter.common import MateyQueryAndProcessDataError, singleton
 from .base import BaseTorrentClass
-        
+
+@singleton        
 class MateyQbittorrentPrometheusMetrics:
     def __init__(self):
         self.qbittorrent_torrents_error =           Gauge('qbittorrent_torrents_leeching',      'Number of leeching torrents',              labelnames=['instance'])
@@ -33,7 +34,8 @@ class MateyQbittorrentPrometheusMetrics:
         
         self.qbittorrent_api_query_latency_seconds =         Summary('qbittorrent_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.qbittorrent_data_processing_latency_seconds =   Summary('qbittorrent_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
-	
+
+qbittorrent_metrics = MateyQbittorrentPrometheusMetrics()
     
 class MateyQbittorrent(BaseTorrentClass):
     
@@ -43,7 +45,7 @@ class MateyQbittorrent(BaseTorrentClass):
                         'username' : kwargs.get('username'), 
                         'password' : self.api_key}), **kwargs)
         self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
-        self.metrics = MateyQbittorrentPrometheusMetrics()
+        self.metrics = qbittorrent_metrics
 
         
     def filter_data(data: dict) -> dict:
