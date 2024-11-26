@@ -2,9 +2,10 @@
 from prometheus_client import Gauge, Summary
 from pyarr import SonarrAPI
 
-from matey_exporter.common import MateyQueryAndProcessDataError
+from matey_exporter.common import MateyQueryAndProcessDataError, singleton
 from .base import BaseStarrClass
 
+@singleton
 class MateySonarrPrometheusMetrics:
     def __init__(self):
         self.sonarr_series =                Gauge('sonarr_series',                  'Number of total series',           labelnames=['instance'])
@@ -20,13 +21,13 @@ class MateySonarrPrometheusMetrics:
         self.sonarr_api_query_latency_seconds =         Summary('sonarr_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.sonarr_data_processing_latency_seconds =   Summary('sonarr_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
         
-
+sonarr_metrics = MateySonarrPrometheusMetrics()
     
 class MateySonarr(BaseStarrClass):
     
     def __init__(self, **kwargs):
         super().__init__(SonarrAPI, **kwargs)
-        self.metrics = MateySonarrPrometheusMetrics()
+        self.metrics = sonarr_metrics
 
         
     def get_series_data_task(self):

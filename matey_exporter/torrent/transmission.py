@@ -3,9 +3,10 @@ import time
 from prometheus_client import Gauge, Summary
 from transmission_rpc import Client
 
-from matey_exporter.common import MateyQueryAndProcessDataError
+from matey_exporter.common import MateyQueryAndProcessDataError, singleton
 from .base import BaseTorrentClass
 
+@singleton
 class MateyTransmissionPrometheusMetrics:
     def __init__(self):
         self.check_pending_torrents =       Gauge('check_pending_torrents',      'Number of check pending torrents',    labelnames=['instance'])
@@ -18,13 +19,16 @@ class MateyTransmissionPrometheusMetrics:
         
         self.transmission_api_query_latency_seconds =         Summary('transmission_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+
+transmission_metrics = MateyTransmissionPrometheusMetrics()
     
 class MateyTransmission(BaseTorrentClass):
     
     def __init__(self, **kwargs):
-        super().__init__(Client(self.host_url, self.api_key), **kwargs)
+        super().__init__(**kwargs)
+        self.api = Client(username=kwargs.get('host_url'), password=kwargs.get('api_key'))
         self.api._http_session = kwargs.get('verify') # TODO: Using private attribute
-        self.metrics = MateyTransmissionPrometheusMetrics
+        self.metrics = transmission_metrics
 
 
     def filter_data(data: dict) -> dict:
