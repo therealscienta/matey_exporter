@@ -25,7 +25,8 @@ transmission_metrics = MateyTransmissionPrometheusMetrics()
 class MateyTransmission(BaseTorrentClass):
     
     def __init__(self, **kwargs):
-        super().__init__(Client(kwargs.get('host_url'), kwargs.get('api_key')), **kwargs)
+        super().__init__(**kwargs)
+        self.api = Client(username=kwargs.get('host_url'), password=kwargs.get('api_key'))
         self.api._http_session = kwargs.get('verify') # TODO: Using private attribute
         self.metrics = transmission_metrics
 
