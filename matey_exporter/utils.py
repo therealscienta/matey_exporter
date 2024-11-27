@@ -33,17 +33,20 @@ def validate_yaml_config(config: dict[str]) -> bool:
 
     # Regex for validating config file
     regex_url = re.compile(r"^https?:\/\/")
-    # regex_api_key = re.compile(r"^[a-zA-Z0-9]{32}$") TODO: Add regex for api_key
+    # regex_api_key = re.compile(r"^[a-zA-Z0-9]{32}$") 
+    # TODO: Add regex for api_key and password to schema
+    # for validation and/or verify non example config
 
     # Load available datasource types to use for schema evaluation
     datasources_schema_evalutation = set(key.capitalize() for key in loaders_dict.keys())
 
     config_schema = Schema({
         Or(*datasources_schema_evalutation): [{
-            "host_url": lambda str: regex_url.match(str),
-            "api_key": str, #lambda str: regex_api_key.match(str),
-            "instance_name": str,
-            Optional("verify"): bool,
+            'host_url': lambda str: regex_url.match(str),
+            'instance_name': str,
+            Or('api_key', 'password', only_one=True): str, #lambda str: regex_api_key.match(str),
+            Optional('username'): str,
+            Optional('verify'): bool,
             },
         ],
     })
