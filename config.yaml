@@ -3,9 +3,11 @@
 # Configures the connection to a Matey instance.
 # 
 # host_url: The URL of the Matey instance.
-# api_key: The API key for the Matey instance.
 # instance_name: A name to identify the Matey instance.
-# verify (optional): Whether to verify the SSL/TLS certificate of the Sonarr instance.
+# api_key: The API key for the Matey instance.
+# password: The password for the Matey instance.
+# username (optional): The username for the Matey instance.
+# verify (optional): Whether to verify the SSL/TLS certificate of the Matey instance.
 
 
 Radarr:
@@ -18,4 +20,16 @@ Sonarr:
 - host_url: https://sonarr.something.or.ip/
   api_key: XXXXXXXxxxxXXxxXXxXXXXXXXXXXXXXX
   instance_name: sonarr_one
+  verify: False
+
+- host_url: https://sonarr2.something.or.ip/
+  api_key: XXXXXXXxxxxXXxxXXxXXXXXXXXXXXXXX
+  instance_name: sonarr_two
+  verify: False
+
+Qbittorrent:
+- host_url: https://qbittorrent.something.or.ip/
+  username: user
+  password: XXXXXXXxxxxXXxxXXxXXXXXXXXXXXXXX
+  instance_name: qbittorrent_one
   verify: False
