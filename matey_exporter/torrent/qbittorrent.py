@@ -47,7 +47,7 @@ class MateyQbittorrent(BaseTorrentClass):
         self.metrics = MateyQbittorrentPrometheusMetrics()
 
         
-    def filter_data(data: dict) -> dict:
+    def filter_data(self, data: dict) -> dict:
         '''
         Filter returned torrent data based on state of torrent. 
         Dictionary keys are based on states from official API documentation:
