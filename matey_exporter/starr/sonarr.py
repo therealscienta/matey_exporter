@@ -20,21 +20,20 @@ class MateySonarrPrometheusMetrics:
         
         self.sonarr_api_query_latency_seconds =         Summary('sonarr_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.sonarr_data_processing_latency_seconds =   Summary('sonarr_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
-        
-sonarr_metrics = MateySonarrPrometheusMetrics()
+
     
 class MateySonarr(BaseStarrClass):
     
     def __init__(self, **kwargs):
         super().__init__(SonarrAPI, **kwargs)
-        self.metrics = sonarr_metrics
+        self.metrics = MateySonarrPrometheusMetrics()
 
         
     def get_series_data_task(self):
         data = self.api.get_series()
         monitored = 0
         missing_series = 0
-        status = {'upcoming': 0, 'ended': 0, 'continuing': 0}
+        status = {'upcoming': 0, 'ended': 0, 'continuing': 0, 'deleted': 0}
         for d in data:
             status[d['status']] += 1
             if d['monitored'] == True : monitored += 1

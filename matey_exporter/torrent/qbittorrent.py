@@ -35,7 +35,6 @@ class MateyQbittorrentPrometheusMetrics:
         self.qbittorrent_api_query_latency_seconds =         Summary('qbittorrent_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.qbittorrent_data_processing_latency_seconds =   Summary('qbittorrent_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
 
-qbittorrent_metrics = MateyQbittorrentPrometheusMetrics()
     
 class MateyQbittorrent(BaseTorrentClass):
     
@@ -45,10 +44,10 @@ class MateyQbittorrent(BaseTorrentClass):
                         'username' : kwargs.get('username'), 
                         'password' : kwargs.get('password')}), **kwargs)
         self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
-        self.metrics = qbittorrent_metrics
+        self.metrics = MateyQbittorrentPrometheusMetrics()
 
         
-    def filter_data(data: dict) -> dict:
+    def filter_data(self, data: dict) -> dict:
         '''
         Filter returned torrent data based on state of torrent. 
         Dictionary keys are based on states from official API documentation:
