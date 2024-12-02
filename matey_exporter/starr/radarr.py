@@ -25,13 +25,12 @@ class MateyRadarrPrometheusMetrics:
         self.radarr_get_movie_api_query_latency_seconds =   Summary('radarr_get_movie_api_query_latency_seconds', 'Latency for a single API query',       labelnames=['instance'])
         self.radarr_data_processing_latency_seconds =       Summary('radarr_data_processing_latency_seconds',     'Latency for exporter data processing', labelnames=['instance'])
 
-radarr_metrics = MateyRadarrPrometheusMetrics()
 
 class MateyRadarr(BaseStarrClass):
     
     def __init__(self, **kwargs):
         super().__init__(RadarrAPI, **kwargs)
-        self.metrics = radarr_metrics
+        self.metrics = MateyRadarrPrometheusMetrics()
     
     
     def get_movie_data_task(self):

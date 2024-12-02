@@ -20,7 +20,6 @@ class MateyTransmissionPrometheusMetrics:
         self.transmission_api_query_latency_seconds =         Summary('transmission_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
 
-transmission_metrics = MateyTransmissionPrometheusMetrics()
     
 class MateyTransmission(BaseTorrentClass):
     
@@ -28,7 +27,7 @@ class MateyTransmission(BaseTorrentClass):
         super().__init__(**kwargs)
         self.api = Client(username=kwargs.get('host_url'), password=kwargs.get('api_key'))
         self.api._http_session = kwargs.get('verify') # TODO: Using private attribute
-        self.metrics = transmission_metrics
+        self.metrics = MateyTransmissionPrometheusMetrics()
 
 
     def filter_data(data: dict) -> dict:

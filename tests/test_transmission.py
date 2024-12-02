@@ -27,11 +27,11 @@ def test_good_config_transmission(mocker):
     
     # Patch 'transmission_rpc.Client' to return our mock instead of the real Client
     mocker.patch('transmission_rpc.Client', return_value=mock_client)
-    from matey_exporter.torrent.transmission import MateyTransmission, transmission_metrics
+    from matey_exporter.torrent.transmission import MateyTransmission, MateyTransmissionPrometheusMetrics
     
     transmission = MateyTransmission(**good_test_config_1['transmission'][0])
     assert isinstance(transmission, MateyTransmission)
-    assert transmission.metrics is transmission_metrics
+    assert transmission.metrics is MateyTransmissionPrometheusMetrics()
     assert transmission.instance_name == "transmission-one"
     assert transmission.host_url == "http://192.168.1.100:8989"
     assert transmission.api_key == "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"

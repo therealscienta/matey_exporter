@@ -1,6 +1,6 @@
 import pytest
 from matey_exporter.torrent import load_qbittorrent
-from matey_exporter.torrent.qbittorrent import MateyQbittorrent, qbittorrent_metrics
+from matey_exporter.torrent.qbittorrent import MateyQbittorrent, MateyQbittorrentPrometheusMetrics
 good_test_config_1 = {
     "qbittorrent": [
         {"host_url": "http://192.168.1.100:8989",
@@ -21,7 +21,7 @@ good_test_config_2 = {
 def test_good_config_qbittorrent():
     qbittorrent = load_qbittorrent(**good_test_config_1['qbittorrent'][0])
     assert isinstance(qbittorrent, MateyQbittorrent)
-    assert qbittorrent.metrics is qbittorrent_metrics
+    assert qbittorrent.metrics is MateyQbittorrentPrometheusMetrics()
     assert qbittorrent.instance_name == "qbittorrent-one"
     assert qbittorrent.host_url == "http://192.168.1.100:8989"
     assert qbittorrent.api_key == "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"

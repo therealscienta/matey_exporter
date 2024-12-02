@@ -57,6 +57,7 @@ def validate_yaml_config(config: dict[str]) -> bool:
         return True
     except Exception as e:
         e = re.sub(r"'api_key': '\S*',", '', str(e)) # Remove api_key from logging output
+        e = re.sub(r"'password': '\S*',", '', str(e)) # Remove password from logging output
         try:
             instance = e.splitlines()[1].split()[-3] # Get instance name from error message.
             error = e.splitlines()[-2]
