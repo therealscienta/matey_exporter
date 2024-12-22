@@ -32,11 +32,11 @@ class MateyDelugePrometheusMetrics:
         
         self.deluge_torrent_files = Gauge(
             name='deluge_torrent_files', 
-            documentation='Number of Torrent files', 
+            documentation='Number of Torrent files',
             labelnames=['instance', 'torrent_name'])
         
         self.deluge_torrent_state = Enum(
-            name='deluge_torrent_state', 
+            name='deluge_torrent_state',
             documentation='Available Torrent states', 
             labelnames=['instance', 'torrent_name'],
             states=STATES)
@@ -51,7 +51,7 @@ class MateyDelugePrometheusMetrics:
             documentation='Latency for a single API query',
             labelnames=['instance'])
         
-        self.deluge_data_processing_latency_seconds =   Summary(
+        self.deluge_data_processing_latency_seconds = Summary(
             name='deluge_data_processing_latency_seconds',
             documentation='Latency for exporter data processing',
             labelnames=['instance'])
@@ -69,45 +69,46 @@ class MateyDeluge(BaseMateyClass):
 
     def get_torrent_data(self) -> None:
         '''
-        Query Deluge API for torrent data and process results.
+        Query Deluge API for torrent api_data and process results.
         '''
 
         start_api_query_latency_time = time.time()
         with self.api as client:
-            data = client.get_torrents_status().result
+            api_data = client.get_torrents_status().result
+        
         self.metrics.deluge_api_query_latency_seconds.labels(
             self.instance_name).observe(
                 time.time() - start_api_query_latency_time)
 
         start_data_processing_latency_time = time.time()
-        for t in data:
+        for torrent in api_data:
 
             self.metrics.deluge_torrents_finished.labels(
                 instance=self.instance_name,
-                torrent_name=data.get(t)['name']).set(
-                    int(data.get(t).get('is_finished')))
+                torrent_name=api_data.get(torrent)['name']).set(
+                    int(api_data.get(torrent)['is_finished']))
                                                          
             self.metrics.deluge_torrent_size_bytes.labels(
                 instance=self.instance_name,
-                torrent_name=data.get(t)['name']).set(
-                    data.get(t)['total_size'])
+                torrent_name=api_data.get(torrent)['name']).set(
+                    api_data.get(torrent)['total_size'])
                                                           
             self.metrics.deluge_torrent_files.labels(
                 instance=self.instance_name,
-                torrent_name=data.get(t)['name']).set(
-                    data.get(t)['num_files'])
+                torrent_name=api_data.get(torrent)['name']).set(
+                    api_data.get(torrent)['num_files'])
                                                      
             self.metrics.deluge_torrent_state.labels(
                 instance=self.instance_name,
-                torrent_name=data.get(t)['name']).state(
-                    data.get(t)['state'])
+                torrent_name=api_data.get(torrent)['name']).state(
+                    api_data.get(torrent)['state'])
         
         self.metrics.deluge_data_processing_latency_seconds.labels(
             self.instance_name).observe(
                 time.time() - start_data_processing_latency_time)
-        
-        
-    def get_host_state(self):
+
+
+    def get_host_state(self) -> None:
         '''
         Query Deluge API for host state and process results.
         '''
@@ -121,10 +122,12 @@ class MateyDeluge(BaseMateyClass):
             error = 1
         self.metrics.deluge_host_errors.labels(instance=self.instance_name).set(error)
                                         
-        
 
-    def query_and_process_data(self) -> None:
-        '''Run all query and process methods in the deluge instance'''
+    def query_and_process_api_data(self) -> None:
+        '''
+        Run all query and process methods in the deluge instance
+        '''
+        
         try:
             self.get_torrent_data()
             self.get_host_state()

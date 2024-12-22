@@ -221,6 +221,6 @@ $RECYCLE.BIN/
 *.yaml
 
 # Test file
-test.py
+test_dev/*
 
 # End of https://www.toptal.com/developers/gitignore/api/python,windows,linux
