@@ -10,11 +10,17 @@ The main difference from other Prometheus exporters is that Matey Exporter is de
 
 The project is still in early stages and missing a lot of supported metrics. Feel free to contribute and help improve it.
 
-Currently supported services metrics:
-* Radarr
-* Sonarr
-* qBittorrent
-* Transmission
+Currently supported services metrics and tested versions:
+| Service  | Version |
+|   ---    |  ---    |
+| Radarr   |  ---    |
+| Sonarr   |  ---    |
+| Lidarr   |  ---    |
+| Readarr  |  ---    |
+| Prowlarr |  ---    |
+| qBittorrent | 5.0.3  |
+| Transmission| ---  |
+| Deluge  |   2.1.1  |
 
 ## Installation
 
