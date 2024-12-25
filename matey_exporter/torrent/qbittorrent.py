@@ -107,16 +107,13 @@ class MateyQbittorrent(BaseMateyClass):
         self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
         self.metrics = MateyQbittorrentPrometheusMetrics()
 
-
     def get_torrent_data(self) -> None:
         '''
         Query qBittorrent API for torrent data and process results.
         '''
         
-        self.api.auth_log_in()
         start_api_query_latency_time = time.time()
         api_data = self.api.torrents_info()
-        self.api.auth_log_out()
         self.metrics.qbittorrent_api_query_latency_seconds.labels(
             self.instance_name).observe(time.time() - start_api_query_latency_time)
         
