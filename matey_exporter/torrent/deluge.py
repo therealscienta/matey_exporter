@@ -123,7 +123,7 @@ class MateyDeluge(BaseMateyClass):
         self.metrics.deluge_host_errors.labels(instance=self.instance_name).set(error)
                                         
 
-    def query_and_process_api_data(self) -> None:
+    def query_and_process_data(self) -> None:
         '''
         Run all query and process methods in the deluge instance
         '''
