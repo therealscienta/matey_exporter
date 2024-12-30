@@ -7,8 +7,8 @@ from pathlib import Path
 from schema import Optional, Schema, Or
 from typing import Any
 
-from matey_exporter.common import logger
-from .loaders import loaders_dict
+from matey_exporter.common.log import logger
+from matey_exporter.loaders import loaders_dict
 
 
 def get_config(file_path: Path) -> dict[str]:

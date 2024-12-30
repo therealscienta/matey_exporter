@@ -3,7 +3,7 @@ import asyncio
 from prometheus_client import Summary
 
 from matey_exporter.utils import get_config, load_sources
-from matey_exporter.common import logger
+from matey_exporter.common.log import logger
 from matey_exporter.config import MateyExporterConfig
 
 async def async_start_matey_exporter(sources: set, interval: int) -> None:

@@ -1,6 +1,6 @@
 from pathlib import Path
 from dataclasses import dataclass
-from matey_exporter.common import singleton
+from matey_exporter.common.decorators import singleton
 
 
 class MateyExporterDefaultConfig:

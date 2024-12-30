@@ -3,7 +3,9 @@ import time
 from prometheus_client import Gauge, Summary, Enum
 import qbittorrentapi
 
-from matey_exporter.common import MateyQueryAndProcessDataError, singleton, BaseMateyClass
+from matey_exporter.common.exceptions import MateyQueryAndProcessDataError
+from matey_exporter.common.decorators import singleton
+from matey_exporter.common.base import BaseMateyClass
 
 STATES = [
     'error',

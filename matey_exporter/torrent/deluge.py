@@ -3,7 +3,9 @@ import time
 from prometheus_client import Gauge, Summary, Enum
 from deluge_web_client import DelugeWebClient
 
-from matey_exporter.common import BaseMateyClass, MateyQueryAndProcessDataError, singleton
+from matey_exporter.common.base import BaseMateyClass
+from matey_exporter.common.exceptions import MateyQueryAndProcessDataError
+from matey_exporter.common.decorators import singleton
 
 STATES = ['Checking',
           'Downloading',
