@@ -19,7 +19,7 @@ Currently supported services metrics and tested versions:
 | Readarr  |  ---    |
 | Prowlarr |  ---    |
 | qBittorrent | 5.0.3  |
-| Transmission| ---  |
+| Transmission| 4.0.6  |
 | Deluge  |   2.1.1  |
 
 ## Installation
