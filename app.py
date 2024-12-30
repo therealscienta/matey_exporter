@@ -6,7 +6,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from prometheus_client import start_http_server, Info
-from matey_exporter import MateyExporterConfig, start_matey_exporter, logger, __version__
+from matey_exporter import MateyExporterConfig, start_matey_exporter, __version__
+from matey_exporter.common import logger
 
 if __name__ == '__main__':
     
