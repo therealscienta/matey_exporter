@@ -1,5 +1,6 @@
 certifi==2024.8.30
 charset-normalizer==3.4.0
+deluge-web-client==1.0.4
 idna==3.10
 overrides==7.7.0
 prometheus_client==0.21.0
