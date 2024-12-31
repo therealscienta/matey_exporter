@@ -10,9 +10,11 @@ async def async_start_matey_exporter(sources: set, interval: int) -> None:
     '''Main async function'''
     
     sleep_time = interval
-    matey_exporter_data_query_time_seconds = Summary('matey_exporter_data_query_time_seconds', 
-                                                     'Latency for Matey exporter to complete query', 
-                                                      labelnames=['job'])
+    matey_exporter_data_query_time_seconds = Summary(
+        name='matey_exporter_data_query_time_seconds', 
+        documentation='Latency for Matey exporter to complete query', 
+        labelnames=['job'])
+    
     while True:
         
         try:
@@ -23,13 +25,15 @@ async def async_start_matey_exporter(sources: set, interval: int) -> None:
             # In Python <3.13 this will only improve performance for
             # api calls within a thread, but might gain better performance
             # from future Python version with unlocked GIL.
-            for source in sources: await_tasks.add(asyncio.to_thread(source.query_and_process_data))
+            for source in sources: await_tasks.add(
+                asyncio.to_thread(source.query_and_process_data))
                    
             # Wait for all tasks to complete
             await asyncio.gather(*await_tasks)
 
             # TODO: Evaluate what operations should be timed.
-            matey_exporter_data_query_time_seconds.labels('matey_exporter').observe(time.time() - start_time)
+            matey_exporter_data_query_time_seconds.labels(
+                'matey_exporter').observe(time.time() - start_time)
         
         except Exception as e:
             logger.error(e)

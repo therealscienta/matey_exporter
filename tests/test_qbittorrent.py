@@ -1,6 +1,7 @@
 import pytest
 from matey_exporter.torrent import load_qbittorrent
 from matey_exporter.torrent.qbittorrent import MateyQbittorrent, MateyQbittorrentPrometheusMetrics
+
 good_test_config_1 = {
     "qbittorrent": [
         {"host_url": "http://192.168.1.100:8989",

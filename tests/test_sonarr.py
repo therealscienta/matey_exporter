@@ -1,6 +1,7 @@
 import pytest
 from matey_exporter.starr import load_sonarr
 from matey_exporter.starr.sonarr import MateySonarr, MateySonarrPrometheusMetrics
+
 good_test_config_1 = {
     "Sonarr": [
         {"host_url": "http://192.168.1.100:8989",
