@@ -1,5 +1,5 @@
 
-from matey_exporter.common import BaseMateyClass
+from matey_exporter.common.base import BaseMateyClass
 
 class BaseStarrClass(BaseMateyClass):
     
