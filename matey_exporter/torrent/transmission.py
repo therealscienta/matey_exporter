@@ -1,87 +1,26 @@
 
 import time
-from prometheus_client import Gauge, Summary, Enum
+from prometheus_client import Gauge, Summary
 from transmission_rpc import Client
+from collections import defaultdict
 
 from matey_exporter.common.exceptions import MateyQueryAndProcessDataError 
 from matey_exporter.common.decorators import singleton
 from matey_exporter.common.base import BaseMateyClass
 
-STATES = [
-    'check pending',
-    'checking',
-    'downloading',
-    'download pending',
-    'seeding',
-    'seed pending', 
-    'stopped',
-]
-
-
 @singleton
 class MateyTransmissionPrometheusMetrics:
     def __init__(self):
+        self.check_pending_torrents =       Gauge('check_pending_torrents',      'Number of check pending torrents',    labelnames=['instance'])
+        self.checking_torrents =            Gauge('checking_torrents',           'Number of checking torrents',         labelnames=['instance'])
+        self.downloading_torrents =         Gauge('downloading_torrents',        'Number of downloading torrents',      labelnames=['instance'])
+        self.download_pending_torrents =    Gauge('download_pending_torrents',   'Number of download pending torrents', labelnames=['instance'])
+        self.seeding_torrents =             Gauge('seeding_torrents',            'Number of seeding torrents',          labelnames=['instance'])
+        self.seed_pending_torrents =        Gauge('seed_pending_torrents',       'Number of seed pending torrents',     labelnames=['instance'])
+        self.stopped_torrents =             Gauge('stopped_torrents',            'Number of stopped torrents',          labelnames=['instance'])
         
-        self.transmission_torrent_state = Enum(
-            name='transmission_torrent_state',
-            documentation='Available Transmission Torrent states',
-            labelnames=['instance', 'torrent_name', 'torrent_path'],
-            states=STATES)
-
-        self.transmission_torrent_error = Gauge(
-            name='transmission_torrent_error',
-            documentation='Transmission torrent error',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-        
-        self.transmission_torrent_ratio = Gauge(
-            name='transmission_torrent_ratio',
-            documentation='Transmission torrent ratio',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-
-        self.transmission_torrent_download_speed_bytes = Gauge(
-            name='transmission_torrent_download_speed_bytes',
-            documentation='Transmission torrent download speed',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-
-        self.transmission_torrent_upload_speed_bytes = Gauge(
-            name='transmission_torrent_upload_speed_bytes',
-            documentation='Transmission torrent upload speed',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-
-        self.transmission_torrent_total_size_bytes = Gauge(
-            name='transmission_torrent_total_size_bytes',
-            documentation='Transmission torrent total size',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-
-        self.transmission_torrent_downloaded_bytes = Gauge(
-            name='transmission_torrent_downloaded_bytes',
-            documentation='Transmission torrent downloaded',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-        
-        self.transmission_torrent_uploaded_bytes = Gauge(
-            name='transmission_torrent_uploaded_bytes',
-            documentation='Transmission torrent uploaded',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-        
-        self.transmission_torrent_trackers = Gauge(
-            name='transmission_torrent_trackers',
-            documentation='Transmission torrent trackers',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-        
-        self.transmission_torrent_file_count = Gauge(
-            name='transmission_torrent_file_count',
-            documentation='Transmission torrent file count',
-            labelnames=['instance', 'torrent_name', 'torrent_path'])
-        
-        self.transmission_api_query_latency_seconds = Summary(
-            name='transmission_api_query_latency_seconds',
-            documentation='Latency for a single API query',
-            labelnames=['instance'])
-        
-        self.transmission_data_processing_latency_seconds = Summary(
-            name='transmission_data_processing_latency_seconds',
-            documentation='Latency for exporter data processing',
-            labelnames=['instance'])
+        self.transmission_api_query_latency_seconds =         Summary('transmission_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
+        self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
 
     
 class MateyTransmission(BaseMateyClass):
@@ -92,8 +31,20 @@ class MateyTransmission(BaseMateyClass):
             host=kwargs.get('host_url').replace('http://', ''), # TODO: Remove replace and fix URL parsing in config. Client does not want http://
             username=kwargs.get('username'), 
             password=kwargs.get('password'))
-        self.api._http_session.verify = kwargs.get('verify') # Disable SSL verification
+        self.api._http_session = kwargs.get('verify') # Disable SSL verification
         self.metrics = MateyTransmissionPrometheusMetrics()
+
+
+    def filter_data(data: dict) -> dict:
+        '''
+        Filter returned torrent data based on state of torrent. 
+        Dictionary keys are based on states from official API documentation:
+        https://transmission-rpc.readthedocs.io/en/v7.0.11/torrent.html#transmission_rpc.Torrent.status
+        '''
+        data_dict = defaultdict(int)
+        for d in data: data_dict[d.get('status')] += 1
+        return data_dict
+
 
     def get_torrent_data(self) -> None:
         '''
@@ -102,64 +53,20 @@ class MateyTransmission(BaseMateyClass):
 
         start_api_query_latency_time = time.time()
         data = self.api.get_torrents()
-        self.metrics.transmission_api_query_latency_seconds.labels(
-            self.instance_name).observe(time.time() - start_api_query_latency_time)
+        self.metrics.transmission_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
         
         start_data_processing_latency_time = time.time()
+        filtered_data = self.filter_data(data)
         
-        for torrent in data:
-            self.metrics.transmission_torrent_state.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).state(torrent.status)
-            
-            self.metrics.transmission_torrent_error.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.error)
-
-            self.metrics.transmission_torrent_ratio.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.ratio)
-
-            self.metrics.transmission_torrent_download_speed_bytes.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.rate_download)
-
-            self.metrics.transmission_torrent_upload_speed_bytes.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.rate_upload)
-
-            self.metrics.transmission_torrent_total_size_bytes.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.total_size)
-
-            self.metrics.transmission_torrent_trackers.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(len(torrent.tracker_list))
-            
-            self.metrics.transmission_torrent_downloaded_bytes.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.downloaded_ever)
-            
-            self.metrics.transmission_torrent_uploaded_bytes.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.uploaded_ever)
-            
-            self.metrics.transmission_torrent_file_count.labels(
-                instance=self.instance_name,
-                torrent_name=torrent.name,
-                torrent_path=torrent.download_dir).set(torrent.file_count)
-
-        self.metrics.transmission_data_processing_latency_seconds.labels(
-            self.instance_name).observe(time.time() - start_data_processing_latency_time)
+        self.metrics.check_pending_torrents.labels(self.instance_name).set(filtered_data.get('check pending'))
+        self.metrics.checking_torrents.labels(self.instance_name).set(filtered_data.get('checking'))
+        self.metrics.downloading_torrents.labels(self.instance_name).set(filtered_data.get('downloading'))
+        self.metrics.download_pending_torrents.labels(self.instance_name).set(filtered_data.get('download pending'))
+        self.metrics.seeding_torrents.labels(self.instance_name).set(filtered_data.get('seeding'))
+        self.metrics.seed_pending_torrents.labels(self.instance_name).set(filtered_data.get('seed pending'))
+        self.metrics.stopped_torrents.labels(self.instance_name).set(filtered_data.get('stopped'))
+        
+        self.metrics.transmission_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         
 
     def query_and_process_data(self) -> None:
@@ -168,4 +75,3 @@ class MateyTransmission(BaseMateyClass):
             self.get_torrent_data()
         except Exception as e:
             raise MateyQueryAndProcessDataError(self.instance_name, e)
-
