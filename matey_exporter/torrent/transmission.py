@@ -2,7 +2,6 @@
 import time
 from prometheus_client import Gauge, Summary
 from transmission_rpc import Client
-from collections import defaultdict
 
 from matey_exporter.common.exceptions import MateyQueryAndProcessDataError 
 from matey_exporter.common.decorators import singleton
@@ -31,17 +30,26 @@ class MateyTransmission(BaseMateyClass):
             host=kwargs.get('host_url').replace('http://', ''), # TODO: Remove replace and fix URL parsing in config. Client does not want http://
             username=kwargs.get('username'), 
             password=kwargs.get('password'))
-        self.api._http_session = kwargs.get('verify') # Disable SSL verification
+        self.api._http_session.verify = kwargs.get('verify') # Disable SSL verification
         self.metrics = MateyTransmissionPrometheusMetrics()
 
 
-    def filter_data(data: dict) -> dict:
+    def filter_data(self, data: dict) -> dict:
         '''
         Filter returned torrent data based on state of torrent. 
         Dictionary keys are based on states from official API documentation:
         https://transmission-rpc.readthedocs.io/en/v7.0.11/torrent.html#transmission_rpc.Torrent.status
         '''
-        data_dict = defaultdict(int)
+        
+        data_dict = {
+            'check pending': 0,
+            'checking': 0,
+            'downloading': 0,
+            'download pending': 0,
+            'seeding': 0,
+            'seed pending': 0, 
+            'stopped': 0,
+        }
         for d in data: data_dict[d.get('status')] += 1
         return data_dict
 

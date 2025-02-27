@@ -2,7 +2,6 @@
 import time
 from prometheus_client import Gauge, Summary
 import qbittorrentapi
-from collections import defaultdict
 
 from matey_exporter.common.exceptions import MateyQueryAndProcessDataError
 from matey_exporter.common.decorators import singleton
@@ -41,10 +40,11 @@ class MateyQbittorrentPrometheusMetrics:
 class MateyQbittorrent(BaseMateyClass):
     
     def __init__(self, **kwargs):
-        super().__init__(qbittorrentapi.Client(**{
-                        'host': kwargs.get('host_url'), 
-                        'username' : kwargs.get('username'), 
-                        'password' : kwargs.get('password')}), **kwargs)
+        super().__init__(**kwargs)
+        self.api = qbittorrentapi.Client(**{
+            'host': kwargs.get('host_url'), 
+            'username' : kwargs.get('username'), 
+            'password' : kwargs.get('password')})
         self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
         self.metrics = MateyQbittorrentPrometheusMetrics()
 
@@ -56,7 +56,29 @@ class MateyQbittorrent(BaseMateyClass):
         https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
         '''
         
-        data_dict = defaultdict(int)
+        data_dict = {
+            'error': 0,
+            'missingFiles': 0,
+            'allocating': 0,
+            'checkingResumeData': 0,
+            'moving': 0,
+            'metaDL': 0, 
+            'unknown': 0,
+            'uploading': 0,
+            'downloading': 0,
+            'stalledUP': 0,
+            'stalledDL': 0,
+            'checkingUP': 0,
+            'checkingDL': 0,
+            'forcedUP': 0,
+            'forcedDL': 0,
+            'pausedUP': 0,
+            'pausedDL': 0,
+            'queuedUP': 0,
+            'queuedDL': 0,
+            'stoppedUP': 0, # The stopped states are not included in the API docs,
+            'stoppedDL': 0, # but was found during testing.
+        }
         for torrent in data: data_dict[torrent.state] += 1
         return data_dict
 
