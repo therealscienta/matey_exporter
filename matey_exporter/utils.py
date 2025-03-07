@@ -1,14 +1,13 @@
 
-import re
 import sys
 import yaml
 from yaml.loader import SafeLoader
 from pathlib import Path
-from schema import Optional, Schema, Or
-from typing import Any
+from schema import Schema, Or
 
 from matey_exporter.common.log import logger
-from matey_exporter.loaders import loaders_dict
+from matey_exporter.loaders import matey_loaders, matey_schemas
+from matey_exporter.common.exceptions import MateyYamlConfigValidationError
 
 
 def get_config(file_path: Path) -> dict[str]:
@@ -31,42 +30,17 @@ def validate_yaml_config(config: dict[str]) -> bool:
     True if valid, or exit with an error message if not.
     '''
 
-    # Regex for validating config file
-    regex_url = re.compile(r"^https?:\/\/")
-    # regex_api_key = re.compile(r"^[a-zA-Z0-9]{32}$") 
-    # TODO: Add regex for api_key and password to schema
-    # for validation and/or verify non example config
-
-    # Load available datasource types to use for schema evaluation
-    datasources_schema_evalutation = set(key.capitalize() for key in loaders_dict.keys())
-
-    config_schema = Schema({
-        Or(*datasources_schema_evalutation): [{
-            'host_url': lambda str: regex_url.match(str),
-            'instance_name': str,
-            Or('api_key', 'password', only_one=True): str, #lambda str: regex_api_key.match(str),
-            Optional('username'): str,
-            Optional('verify'): bool,
-            },
-        ],
+    combined_schema = Schema({
+        Or(*matey_schemas.get('services')): Or(*matey_schemas.get('schemas'))
     })
-
-    try:
-        config_schema.validate(config)
-        logger.debug('Configuration is valid.')
-        return True
-    except Exception as e:
-        e = re.sub(r"'api_key': '\S*',", '', str(e)) # Remove api_key from logging output
-        e = re.sub(r"'password': '\S*',", '', str(e)) # Remove password from logging output
-        try:
-            instance = e.splitlines()[1].split()[-3] # Get instance name from error message.
-            error = e.splitlines()[-2]
-        except IndexError:
-            instance = 'Unknown'
-            error = e
-        logger.critical(f'Configuration is invalid: {error} {instance}')
-        sys.exit('Exiting.')
         
+    try:
+        combined_schema.validate(config)
+        logger.debug('Configuration is valid.')
+    except Exception as e:
+        raise MateyYamlConfigValidationError(validate_yaml_config.__name__, e)
+    return True
+
         
 def tls_verify_check(config_instance: dict[str]) -> dict:
     '''
@@ -92,5 +66,5 @@ def load_sources(config: dict[str]) -> set:
     # TODO: Rework nested for loops
     for datasource, instance_configs in config.items():
         for config in instance_configs:
-            sources.add(loaders_dict[datasource](**tls_verify_check(config)))
+            sources.add(matey_loaders[datasource](**tls_verify_check(config)))
     return sources

@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from prometheus_client import start_http_server, Info
 from matey_exporter import MateyExporterConfig, start_matey_exporter, __version__
 from matey_exporter.common.log import logger
+from matey_exporter.common.exceptions import MateyYamlConfigValidationError
 
 if __name__ == '__main__':
     
@@ -63,6 +64,8 @@ if __name__ == '__main__':
         logger.error(f'Failed to start server: {e}')
     except KeyboardInterrupt:
         logger.error(f'Matey exporter was interrupted.')
+    except MateyYamlConfigValidationError as e:
+        logger.error(f'{e.__class__.__name__}: {e}')
     except Exception as e:
         logger.error(f'Unexpected error: {e}')
     finally:

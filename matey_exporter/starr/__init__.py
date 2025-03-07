@@ -1,4 +1,4 @@
-
+from .config_validation import starr_schemas
 
 def load_sonarr(**kwargs):
     from .sonarr import MateySonarr
