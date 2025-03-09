@@ -9,7 +9,7 @@ from matey_exporter.common.decorators import singleton
 from matey_exporter.common.base import BaseMateyClass
 
 @singleton        
-class MateyQbittorrentPrometheusMetrics:
+class MateyQbittorrentPrometheusMetricsSimple:
     def __init__(self):
         self.qbittorrent_torrents_error =           Gauge('qbittorrent_torrents_leeching',      'Number of leeching torrents',              labelnames=['instance'])
         self.qbittorrent_torrents_missingFiles =    Gauge('qbittorrent_torrents_missingFiles',  'Number of torrents with missing files',    labelnames=['instance'])
@@ -34,11 +34,11 @@ class MateyQbittorrentPrometheusMetrics:
         self.qbittorrent_torrents_checkingResumeData =  Gauge('qbittorrent_torrents_checkingResumeData',    'Number of torrents checking resume data',  labelnames=['instance'])
 
         
-        self.qbittorrent_api_query_latency_seconds =         Summary('qbittorrent_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
+        #self.qbittorrent_api_query_latency_seconds =         Summary('qbittorrent_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.qbittorrent_data_processing_latency_seconds =   Summary('qbittorrent_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
 
     
-class MateyQbittorrent(BaseMateyClass):
+class MateyQbittorrentSimple(BaseMateyClass):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -47,7 +47,7 @@ class MateyQbittorrent(BaseMateyClass):
             'username' : kwargs.get('username'), 
             'password' : kwargs.get('password')})
         self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
-        self.metrics = MateyQbittorrentPrometheusMetrics()
+        self.metrics = MateyQbittorrentPrometheusMetricsSimple()
 
         
     def count_states(self, data: dict) -> dict:
@@ -72,7 +72,7 @@ class MateyQbittorrent(BaseMateyClass):
         self.api.auth_log_in()
         start_api_query_latency_time = time.time()
         data = self.api.torrents_info()
-        self.metrics.qbittorrent_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
+        #self.metrics.qbittorrent_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
         self.api.auth_log_out()
         
         start_data_processing_latency_time = time.time()

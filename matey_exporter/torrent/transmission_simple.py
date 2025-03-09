@@ -9,7 +9,7 @@ from matey_exporter.common.decorators import singleton
 from matey_exporter.common.base import BaseMateyClass
 
 @singleton
-class MateyTransmissionPrometheusMetrics:
+class MateyTransmissionPrometheusMetricsSimple:
     def __init__(self):
         self.check_pending_torrents =       Gauge('check_pending_torrents',      'Number of check pending torrents',    labelnames=['instance'])
         self.checking_torrents =            Gauge('checking_torrents',           'Number of checking torrents',         labelnames=['instance'])
@@ -23,7 +23,7 @@ class MateyTransmissionPrometheusMetrics:
         self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
 
     
-class MateyTransmission(BaseMateyClass):
+class MateyTransmissionSimple(BaseMateyClass):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -33,7 +33,7 @@ class MateyTransmission(BaseMateyClass):
             username=kwargs.get('username'), 
             password=kwargs.get('password'))
         self.api._http_session.verify = kwargs.get('verify') # Disable SSL verification
-        self.metrics = MateyTransmissionPrometheusMetrics()
+        self.metrics = MateyTransmissionPrometheusMetricsSimple()
 
 
     def count_states(self, data: dict) -> dict:

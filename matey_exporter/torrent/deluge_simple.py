@@ -19,7 +19,7 @@ STATES = ['Checking',
           'Unfinished']
 
 @singleton        
-class MateyDelugePrometheusMetrics:
+class MateyDelugePrometheusMetricsSimple:
     
     def __init__(self):
         self.deluge_torrents_finished = Gauge(
@@ -59,14 +59,14 @@ class MateyDelugePrometheusMetrics:
             labelnames=['instance'])
 
     
-class MateyDeluge(BaseMateyClass):
+class MateyDelugeSimple(BaseMateyClass):
     
     def __init__(self, **kwargs):
         self.host_url = kwargs.get('host_url')
         self.password = kwargs.get('password')
         self.instance_name = kwargs.get('instance_name')
         self.api = DelugeWebClient(url=self.host_url, password=self.password)
-        self.metrics = MateyDelugePrometheusMetrics()
+        self.metrics = MateyDelugePrometheusMetricsSimple()
 
 
     def get_torrent_data(self) -> None:
