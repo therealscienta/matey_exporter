@@ -18,7 +18,7 @@ class MateyYamlConfigValidationError(Exception):
     Exception raised for configuration errors in yaml config file.
     '''
     
-    def __init__(self, func, error: str):
+    def __init__(self, error: str):
         error = re.sub(r"'api_key': '\S*',", '', str(error)) # Remove api_key from logging output
         error = re.sub(r"'password': '\S*',", '', str(error)) # Remove password from logging output
         try:
