@@ -29,18 +29,4 @@ class MateyExporterConfig:
     interval :int = MateyExporterDefaultConfig.INTERVAL
     config_file :str = MateyExporterDefaultConfig.CONFIG_FILE
 
-# TODO: Create configuration classes for each collector 
-# to enable or disable specific metrics.
-
-# @dataclass
-# class MateyTransmissionCollectorConfig:
-#     '''Configuration for Transmission collector'''
-#     track_ratio :bool = True
-#     track_download_speed :bool = True
-#     track_upload_speed :bool = True
-#     track_downloaded_ever :bool = True
-#     track_uploaded_ever :bool = True
-#     track_file_count :bool = True
-#     track_torrent_count :bool = True
-#     track_active_torrent_count :bool = True
     

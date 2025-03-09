@@ -15,4 +15,4 @@ matey_schemas = {
     'services': 
         starr_schemas.get('services') + 
         torrent_schemas.get('services'),
-    }
+}
