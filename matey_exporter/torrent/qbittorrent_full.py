@@ -87,13 +87,13 @@ class MateyQbittorrentPrometheusMetricsFull:
             documentation='Qbittorrent Torrent priority', 
             labelnames=['instance', 'torrent_name', 'torrent_path'])
 
-        self.qbittorrent_api_query_latency_seconds = Summary(
-            name='qbittorrent_api_query_latency_seconds',
+        self.qbittorrent_api_query_full_latency_seconds = Summary(
+            name='qbittorrent_api_query_full_latency_seconds',
             documentation='Latency for a single API query',
             labelnames=['instance'])
         
-        self.qbittorrent_data_processing_latency_seconds = Summary(
-            name='qbittorrent_data_processing_latency_seconds',
+        self.qbittorrent_full_data_processing_latency_seconds = Summary(
+            name='qbittorrent_full_data_processing_latency_seconds',
             documentation='Latency for exporter data processing',
             labelnames=['instance'])
 
@@ -117,7 +117,7 @@ class MateyQbittorrentFull(BaseMateyClass):
         
         start_api_query_latency_time = time.time()
         api_data = self.api.torrents_info()
-        self.metrics.qbittorrent_api_query_latency_seconds.labels(
+        self.metrics.qbittorrent_api_query_full_latency_seconds.labels(
             self.instance_name).observe(time.time() - start_api_query_latency_time)
         
         start_data_processing_latency_time = time.time()
@@ -173,7 +173,7 @@ class MateyQbittorrentFull(BaseMateyClass):
                 torrent_name=torrent.name,
                 torrent_path=torrent.content_path).set(torrent.priority)
         
-        self.metrics.qbittorrent_data_processing_latency_seconds.labels(
+        self.metrics.qbittorrent_full_data_processing_latency_seconds.labels(
             self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         
 

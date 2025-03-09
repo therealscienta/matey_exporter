@@ -19,8 +19,8 @@ class MateyTransmissionPrometheusMetricsSimple:
         self.seed_pending_torrents =        Gauge('seed_pending_torrents',       'Number of seed pending torrents',     labelnames=['instance'])
         self.stopped_torrents =             Gauge('stopped_torrents',            'Number of stopped torrents',          labelnames=['instance'])
         
-        self.transmission_api_query_latency_seconds =         Summary('transmission_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
-        self.transmission_data_processing_latency_seconds =   Summary('transmission_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+        self.transmission_api_query_simple_latency_seconds =         Summary('transmission_api_query_simple_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
+        self.transmission_simple_data_processing_latency_seconds =   Summary('transmission_simple_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
 
     
 class MateyTransmissionSimple(BaseMateyClass):
@@ -56,7 +56,7 @@ class MateyTransmissionSimple(BaseMateyClass):
 
         start_api_query_latency_time = time.time()
         data = self.api.get_torrents()
-        self.metrics.transmission_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
+        self.metrics.transmission_api_query_simple_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
         
         start_data_processing_latency_time = time.time()
         data_counted_states = self.count_states(data)
@@ -69,7 +69,7 @@ class MateyTransmissionSimple(BaseMateyClass):
         self.metrics.seed_pending_torrents.labels(self.instance_name).set(data_counted_states.get('seed pending', 0))
         self.metrics.stopped_torrents.labels(self.instance_name).set(data_counted_states.get('stopped', 0))
         
-        self.metrics.transmission_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
+        self.metrics.transmission_simple_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         
 
     def query_and_process_data(self) -> None:

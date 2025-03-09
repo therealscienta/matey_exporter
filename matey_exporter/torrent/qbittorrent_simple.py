@@ -34,8 +34,8 @@ class MateyQbittorrentPrometheusMetricsSimple:
         self.qbittorrent_torrents_checkingResumeData =  Gauge('qbittorrent_torrents_checkingResumeData',    'Number of torrents checking resume data',  labelnames=['instance'])
 
         
-        #self.qbittorrent_api_query_latency_seconds =         Summary('qbittorrent_api_query_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
-        self.qbittorrent_data_processing_latency_seconds =   Summary('qbittorrent_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+        self.qbittorrent_api_query_simple_latency_seconds =         Summary('qbittorrent_api_query_simple_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
+        self.qbittorrent_simple_data_processing_latency_seconds =   Summary('qbittorrent_simple_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
 
     
 class MateyQbittorrentSimple(BaseMateyClass):
@@ -72,7 +72,7 @@ class MateyQbittorrentSimple(BaseMateyClass):
         self.api.auth_log_in()
         start_api_query_latency_time = time.time()
         data = self.api.torrents_info()
-        #self.metrics.qbittorrent_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
+        #self.metrics.qbittorrent_api_query_simple_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
         self.api.auth_log_out()
         
         start_data_processing_latency_time = time.time()
@@ -100,7 +100,7 @@ class MateyQbittorrentSimple(BaseMateyClass):
         self.metrics.qbittorrent_torrents_stoppedUP.labels(self.instance_name).set(data_counted_states.get('stoppedUP', 0))
         self.metrics.qbittorrent_torrents_stoppedDL.labels(self.instance_name).set(data_counted_states.get('stoppedDL', 0))
 
-        self.metrics.qbittorrent_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
+        self.metrics.qbittorrent_simple_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         
         
 

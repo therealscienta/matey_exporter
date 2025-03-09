@@ -34,8 +34,8 @@ torrent_loader = {
         'full': load_qbittorrent_full
     },
     'Deluge': {
-        'simple': load_deluge_simple,
-        'full': load_deluge_simple
+        'simple': load_deluge_full,
+        'full': load_deluge_full
     },
 }
 

@@ -48,13 +48,13 @@ class MateyDelugePrometheusMetricsFull:
             documentation='Number of errors',
             labelnames=['instance'])
         
-        self.deluge_api_query_latency_seconds = Summary(
-            name='deluge_api_query_latency_seconds',
+        self.deluge_api_query_full_latency_seconds = Summary(
+            name='deluge_api_query_full_latency_seconds',
             documentation='Latency for a single API query',
             labelnames=['instance'])
         
-        self.deluge_data_processing_latency_seconds = Summary(
-            name='deluge_data_processing_latency_seconds',
+        self.deluge_full_data_processing_latency_seconds = Summary(
+            name='deluge_full_data_processing_latency_seconds',
             documentation='Latency for exporter data processing',
             labelnames=['instance'])
 
@@ -78,7 +78,7 @@ class MateyDelugeFull(BaseMateyClass):
         with self.api as client:
             api_data = client.get_torrents_status().result
         
-        self.metrics.deluge_api_query_latency_seconds.labels(
+        self.metrics.deluge_api_query_full_latency_seconds.labels(
             self.instance_name).observe(
                 time.time() - start_api_query_latency_time)
 
@@ -105,7 +105,7 @@ class MateyDelugeFull(BaseMateyClass):
                 torrent_name=api_data.get(torrent)['name']).state(
                     api_data.get(torrent)['state'])
         
-        self.metrics.deluge_data_processing_latency_seconds.labels(
+        self.metrics.deluge_full_data_processing_latency_seconds.labels(
             self.instance_name).observe(
                 time.time() - start_data_processing_latency_time)
 

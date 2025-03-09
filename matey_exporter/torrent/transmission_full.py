@@ -73,13 +73,13 @@ class MateyTransmissionPrometheusMetricsFull:
             documentation='Transmission torrent file count',
             labelnames=['instance', 'torrent_name', 'torrent_path'])
         
-        self.transmission_api_query_latency_seconds = Summary(
-            name='transmission_api_query_latency_seconds',
+        self.transmission_api_query_full_latency_seconds = Summary(
+            name='transmission_api_query_full_latency_seconds',
             documentation='Latency for a single API query',
             labelnames=['instance'])
         
-        self.transmission_data_processing_latency_seconds = Summary(
-            name='transmission_data_processing_latency_seconds',
+        self.transmission_full_data_processing_latency_seconds = Summary(
+            name='transmission_full_data_processing_latency_seconds',
             documentation='Latency for exporter data processing',
             labelnames=['instance'])
 
@@ -102,7 +102,7 @@ class MateyTransmissionFull(BaseMateyClass):
 
         start_api_query_latency_time = time.time()
         data = self.api.get_torrents()
-        self.metrics.transmission_api_query_latency_seconds.labels(
+        self.metrics.transmission_api_query_full_latency_seconds.labels(
             self.instance_name).observe(time.time() - start_api_query_latency_time)
         
         start_data_processing_latency_time = time.time()
@@ -158,7 +158,7 @@ class MateyTransmissionFull(BaseMateyClass):
                 torrent_name=torrent.name,
                 torrent_path=torrent.download_dir).set(torrent.file_count)
 
-        self.metrics.transmission_data_processing_latency_seconds.labels(
+        self.metrics.transmission_full_data_processing_latency_seconds.labels(
             self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         
 
