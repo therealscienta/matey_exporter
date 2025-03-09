@@ -6,7 +6,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from prometheus_client import start_http_server, Info
-from matey_exporter import MateyExporterConfig, start_matey_exporter, __version__
+from matey_exporter import MateyExporterConfig, start_matey_exporter
+from matey_exporter import __version__, __build__
 from matey_exporter.common.log import logger
 from matey_exporter.common.exceptions import MateyYamlConfigValidationError
 
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     
     # Set the version of the exporter. Build version supplied by CI pipeline.
     i = Info('matey_build_version', 'Prometheus Matey Exporter build version')
-    i.info({'version': __version__, 'build': 'XXXXXXXX'})
+    i.info({'version': __version__, 'build': __build__})
     
     if mateyconfig.loglevel.upper() == 'DEBUG':
         logger.debug(f'Matey exporter config: {mateyconfig}')
