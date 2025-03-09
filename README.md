@@ -87,7 +87,7 @@ prometheus.scrape "matey" {
   targets = [
     {
       "__address__" = "localhost:8000",
-      "job" = "matey",
+      "job" = "integrations/matey_exporter",
     },
   ]
 }
