@@ -2,6 +2,7 @@
 import time
 from prometheus_client import Gauge, Summary
 from transmission_rpc import Client
+from collections import Counter
 
 from matey_exporter.common.exceptions import MateyQueryAndProcessDataError 
 from matey_exporter.common.decorators import singleton
@@ -28,30 +29,24 @@ class MateyTransmission(BaseMateyClass):
         super().__init__(**kwargs)
         self.api = Client(
             host=kwargs.get('host_url').replace('http://', ''), # TODO: Remove replace and fix URL parsing in config. Client does not want http://
+            port=kwargs.get('port', 9091),
             username=kwargs.get('username'), 
             password=kwargs.get('password'))
         self.api._http_session.verify = kwargs.get('verify') # Disable SSL verification
         self.metrics = MateyTransmissionPrometheusMetrics()
 
 
-    def filter_data(self, data: dict) -> dict:
+    def count_states(self, data: dict) -> dict:
         '''
-        Filter returned torrent data based on state of torrent. 
+        Count torrents by their state. 
         Dictionary keys are based on states from official API documentation:
         https://transmission-rpc.readthedocs.io/en/v7.0.11/torrent.html#transmission_rpc.Torrent.status
         '''
         
-        data_dict = {
-            'check pending': 0,
-            'checking': 0,
-            'downloading': 0,
-            'download pending': 0,
-            'seeding': 0,
-            'seed pending': 0, 
-            'stopped': 0,
-        }
-        for d in data: data_dict[d.get('status')] += 1
-        return data_dict
+        counted_data = Counter()
+        for torrent in data:
+            counted_data[torrent.get('status')] += 1
+        return counted_data
 
 
     def get_torrent_data(self) -> None:
@@ -64,15 +59,15 @@ class MateyTransmission(BaseMateyClass):
         self.metrics.transmission_api_query_latency_seconds.labels(self.instance_name).observe(time.time() - start_api_query_latency_time)
         
         start_data_processing_latency_time = time.time()
-        filtered_data = self.filter_data(data)
+        data_counted_states = self.count_states(data)
         
-        self.metrics.check_pending_torrents.labels(self.instance_name).set(filtered_data.get('check pending'))
-        self.metrics.checking_torrents.labels(self.instance_name).set(filtered_data.get('checking'))
-        self.metrics.downloading_torrents.labels(self.instance_name).set(filtered_data.get('downloading'))
-        self.metrics.download_pending_torrents.labels(self.instance_name).set(filtered_data.get('download pending'))
-        self.metrics.seeding_torrents.labels(self.instance_name).set(filtered_data.get('seeding'))
-        self.metrics.seed_pending_torrents.labels(self.instance_name).set(filtered_data.get('seed pending'))
-        self.metrics.stopped_torrents.labels(self.instance_name).set(filtered_data.get('stopped'))
+        self.metrics.check_pending_torrents.labels(self.instance_name).set(data_counted_states.get('check pending', 0))
+        self.metrics.checking_torrents.labels(self.instance_name).set(data_counted_states.get('checking', 0))
+        self.metrics.downloading_torrents.labels(self.instance_name).set(data_counted_states.get('downloading', 0))
+        self.metrics.download_pending_torrents.labels(self.instance_name).set(data_counted_states.get('download pending', 0))
+        self.metrics.seeding_torrents.labels(self.instance_name).set(data_counted_states.get('seeding', 0))
+        self.metrics.seed_pending_torrents.labels(self.instance_name).set(data_counted_states.get('seed pending', 0))
+        self.metrics.stopped_torrents.labels(self.instance_name).set(data_counted_states.get('stopped', 0))
         
         self.metrics.transmission_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         

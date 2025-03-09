@@ -1,15 +1,14 @@
-
 from .config_validation import torrent_schemas
 
-def load_transmission(**kwargs):
+def load_transmission_simple(**kwargs):
     from .transmission_simple import MateyTransmission
     return MateyTransmission(**kwargs)
 
-def load_qbittorrent(**kwargs):
+def load_qbittorrent_simple(**kwargs):
     from .qbittorrent_simple import MateyQbittorrent
     return MateyQbittorrent(**kwargs)
 
-def load_deluge(**kwargs):
+def load_deluge_simple(**kwargs):
     from .deluge_simple import MateyDeluge
     return MateyDeluge(**kwargs)
 
@@ -27,15 +26,15 @@ def load_deluge_full(**kwargs):
 
 torrent_loader = {
     'Transmission': {
-        'simple': load_transmission,
+        'simple': load_transmission_simple,
         'full': load_transmission_full
     },
     'Qbittorrent': {
-        'simple': load_qbittorrent,
+        'simple': load_qbittorrent_simple,
         'full': load_qbittorrent_full
     },
     'Deluge': {
-        'simple': load_deluge,
+        'simple': load_deluge_simple,
         'full': load_deluge_full
     },
 }

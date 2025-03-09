@@ -2,6 +2,7 @@
 import time
 from prometheus_client import Gauge, Summary
 import qbittorrentapi
+from collections import Counter
 
 from matey_exporter.common.exceptions import MateyQueryAndProcessDataError
 from matey_exporter.common.decorators import singleton
@@ -49,39 +50,19 @@ class MateyQbittorrent(BaseMateyClass):
         self.metrics = MateyQbittorrentPrometheusMetrics()
 
         
-    def filter_data(self, data: dict) -> dict:
+    def count_states(self, data: dict) -> dict:
         '''
-        Filter returned torrent data based on state of torrent. 
+        Count torrents by their state. 
         Dictionary keys are based on states from official API documentation:
         https://github.com/qbittorrent/qBittorrent/wiki/WebUI-API-(qBittorrent-4.1)#get-torrent-list
         '''
-        
-        data_dict = {
-            'error': 0,
-            'missingFiles': 0,
-            'allocating': 0,
-            'checkingResumeData': 0,
-            'moving': 0,
-            'metaDL': 0, 
-            'unknown': 0,
-            'uploading': 0,
-            'downloading': 0,
-            'stalledUP': 0,
-            'stalledDL': 0,
-            'checkingUP': 0,
-            'checkingDL': 0,
-            'forcedUP': 0,
-            'forcedDL': 0,
-            'pausedUP': 0,
-            'pausedDL': 0,
-            'queuedUP': 0,
-            'queuedDL': 0,
-            'stoppedUP': 0, # The stopped states are not included in the API docs,
-            'stoppedDL': 0, # but was found during testing.
-        }
-        for torrent in data: data_dict[torrent.state] += 1
-        return data_dict
+    
+        counted_data = Counter()
+        for torrent in data:
+            counted_data[torrent.state] += 1
+        return counted_data
 
+    # TODO: Fix empty result handling!
 
     def get_torrent_data(self) -> None:
         '''
@@ -95,30 +76,30 @@ class MateyQbittorrent(BaseMateyClass):
         self.api.auth_log_out()
         
         start_data_processing_latency_time = time.time()
-        filtered_data = self.filter_data(data)
+        data_counted_states = self.count_states(data)
         
-        self.metrics.qbittorrent_torrents_error.labels(self.instance_name).set(filtered_data.get('error'))
-        self.metrics.qbittorrent_torrents_missingFiles.labels(self.instance_name).set(filtered_data.get('missingFiles'))
-        self.metrics.qbittorrent_torrents_allocating.labels(self.instance_name).set(filtered_data.get('allocating'))
-        self.metrics.qbittorrent_torrents_checkingResumeData.labels(self.instance_name).set(filtered_data.get('checkingResumeData'))
-        self.metrics.qbittorrent_torrents_moving.labels(self.instance_name).set(filtered_data.get('moving'))
-        self.metrics.qbittorrent_torrents_metaDL.labels(self.instance_name).set(filtered_data.get('metaDL'))
-        self.metrics.qbittorrent_torrents_unknown.labels(self.instance_name).set(filtered_data.get('unknown'))
-        self.metrics.qbittorrent_torrents_uploading.labels(self.instance_name).set(filtered_data.get('uploading'))
-        self.metrics.qbittorrent_torrents_downloading.labels(self.instance_name).set(filtered_data.get('downloading'))
-        self.metrics.qbittorrent_torrents_stalledUP.labels(self.instance_name).set(filtered_data.get('stalledUP'))
-        self.metrics.qbittorrent_torrents_stalledDL.labels(self.instance_name).set(filtered_data.get('stalledDL'))
-        self.metrics.qbittorrent_torrents_checkingUP.labels(self.instance_name).set(filtered_data.get('checkingUP'))
-        self.metrics.qbittorrent_torrents_checkingDL.labels(self.instance_name).set(filtered_data.get('checkingDL'))
-        self.metrics.qbittorrent_torrents_forcedUP.labels(self.instance_name).set(filtered_data.get('forcedUP'))
-        self.metrics.qbittorrent_torrents_forcedDL.labels(self.instance_name).set(filtered_data.get('forcedDL'))
-        self.metrics.qbittorrent_torrents_pausedUP.labels(self.instance_name).set(filtered_data.get('pausedUP'))
-        self.metrics.qbittorrent_torrents_pausedDL.labels(self.instance_name).set(filtered_data.get('pausedDL'))
-        self.metrics.qbittorrent_torrents_queuedUP.labels(self.instance_name).set(filtered_data.get('queuedUP'))
-        self.metrics.qbittorrent_torrents_queuedDL.labels(self.instance_name).set(filtered_data.get('queuedDL'))
-        self.metrics.qbittorrent_torrents_stoppedUP.labels(self.instance_name).set(filtered_data.get('stoppedUP'))
-        self.metrics.qbittorrent_torrents_stoppedDL.labels(self.instance_name).set(filtered_data.get('stoppedDL'))
-        
+        self.metrics.qbittorrent_torrents_error.labels(self.instance_name).set(data_counted_states.get('error', 0))
+        self.metrics.qbittorrent_torrents_missingFiles.labels(self.instance_name).set(data_counted_states.get('missingFiles', 0))
+        self.metrics.qbittorrent_torrents_allocating.labels(self.instance_name).set(data_counted_states.get('allocating', 0))
+        self.metrics.qbittorrent_torrents_checkingResumeData.labels(self.instance_name).set(data_counted_states.get('checkingResumeData', 0))
+        self.metrics.qbittorrent_torrents_moving.labels(self.instance_name).set(data_counted_states.get('moving', 0))
+        self.metrics.qbittorrent_torrents_metaDL.labels(self.instance_name).set(data_counted_states.get('metaDL', 0))
+        self.metrics.qbittorrent_torrents_unknown.labels(self.instance_name).set(data_counted_states.get('unknown', 0))
+        self.metrics.qbittorrent_torrents_uploading.labels(self.instance_name).set(data_counted_states.get('uploading', 0))
+        self.metrics.qbittorrent_torrents_downloading.labels(self.instance_name).set(data_counted_states.get('downloading', 0))
+        self.metrics.qbittorrent_torrents_stalledUP.labels(self.instance_name).set(data_counted_states.get('stalledUP', 0))
+        self.metrics.qbittorrent_torrents_stalledDL.labels(self.instance_name).set(data_counted_states.get('stalledDL', 0))
+        self.metrics.qbittorrent_torrents_checkingUP.labels(self.instance_name).set(data_counted_states.get('checkingUP', 0))
+        self.metrics.qbittorrent_torrents_checkingDL.labels(self.instance_name).set(data_counted_states.get('checkingDL', 0))
+        self.metrics.qbittorrent_torrents_forcedUP.labels(self.instance_name).set(data_counted_states.get('forcedUP', 0))
+        self.metrics.qbittorrent_torrents_forcedDL.labels(self.instance_name).set(data_counted_states.get('forcedDL', 0))
+        self.metrics.qbittorrent_torrents_pausedUP.labels(self.instance_name).set(data_counted_states.get('pausedUP', 0))
+        self.metrics.qbittorrent_torrents_pausedDL.labels(self.instance_name).set(data_counted_states.get('pausedDL', 0))
+        self.metrics.qbittorrent_torrents_queuedUP.labels(self.instance_name).set(data_counted_states.get('queuedUP', 0))
+        self.metrics.qbittorrent_torrents_queuedDL.labels(self.instance_name).set(data_counted_states.get('queuedDL', 0))
+        self.metrics.qbittorrent_torrents_stoppedUP.labels(self.instance_name).set(data_counted_states.get('stoppedUP', 0))
+        self.metrics.qbittorrent_torrents_stoppedDL.labels(self.instance_name).set(data_counted_states.get('stoppedDL', 0))
+
         self.metrics.qbittorrent_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         
         

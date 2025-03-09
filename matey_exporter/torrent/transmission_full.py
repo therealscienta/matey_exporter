@@ -92,7 +92,7 @@ class MateyTransmissionFull(BaseMateyClass):
             host=kwargs.get('host_url').replace('http://', ''), # TODO: Remove replace and fix URL parsing in config. Client does not want http://
             username=kwargs.get('username'), 
             password=kwargs.get('password'))
-        self.api._http_session.verify = kwargs.get('verify') # Disable SSL verification
+        self.api._http_session.verify = kwargs.get('verify') # Set SSL verification
         self.metrics = MateyTransmissionPrometheusMetricsFull()
 
     def get_torrent_data(self) -> None:
