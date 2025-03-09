@@ -1,4 +1,4 @@
-from schema import Schema, Optional
+from schema import Schema, Optional, Or
 
 transmission_schema = Schema([{
         'host_url': str,
@@ -6,14 +6,17 @@ transmission_schema = Schema([{
         'username': str,
         'password': str,
         Optional('verify'): bool,
+        Optional('mode'): Or('simple', 'full'),
     }])
 
 qbittorrent_schema = Schema([{
         'host_url': str,
+        Optional('port'): int,
         'instance_name': str,
         'username': str,
         'password': str,
         Optional('verify'): bool,
+        Optional('mode'): Or('simple', 'full'),
     }])
 
 deluge_schema = Schema([{
@@ -22,6 +25,7 @@ deluge_schema = Schema([{
         Optional('username'): str,
         'password': str,
         Optional('verify'): bool,
+        Optional('mode'): Or('simple', 'full'),
     }])
 
 torrent_schemas = {
