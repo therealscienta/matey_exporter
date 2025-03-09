@@ -38,7 +38,7 @@ def validate_yaml_config(config: dict[str]) -> bool:
         combined_schema.validate(config)
         logger.debug('Configuration is valid.')
     except Exception as e:
-        raise MateyYamlConfigValidationError(validate_yaml_config.__name__, e)
+        raise MateyYamlConfigValidationError(e)
     return True
 
         
@@ -65,6 +65,6 @@ def load_sources(config: dict[str]) -> set:
     
     # TODO: Rework nested for loops
     for datasource, instance_configs in config.items():
-        for config in instance_configs:
-            sources.add(matey_loaders[datasource](**tls_verify_check(config)))
+        for cfg in instance_configs:
+            sources.add(matey_loaders[datasource][cfg.get('mode', 'simple')](**tls_verify_check(cfg)))
     return sources
