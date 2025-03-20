@@ -13,8 +13,8 @@ The project is still in early stages and missing a lot of supported metrics. Fee
 Currently supported services metrics and tested versions:
 | Service  | Version |
 |   ---    |  ---    |
-| Radarr   |  ---    |
-| Sonarr   |  ---    |
+| Radarr   |  5.19.3    |
+| Sonarr   |  4.0.13    |
 | Lidarr   |  ---    |
 | Readarr  |  ---    |
 | Prowlarr |  ---    |
