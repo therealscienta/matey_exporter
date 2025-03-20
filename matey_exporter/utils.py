@@ -11,12 +11,14 @@ from matey_exporter.common.exceptions import MateyYamlConfigValidationError
 
 
 def get_config(file_path: Path) -> dict[str]:
-    '''Load yaml config file from supplied path and return dictionary.'''
+    '''
+    Load yaml config file from supplied path and return dictionary.
+    '''
     
     try:
         with open(file_path.as_posix()) as f:
             config = yaml.load(f, Loader=SafeLoader)
-        logger.debug(f'Config file loaded:  {file_path}')
+        logger.debug(f'Config file loaded: {file_path}')
     
     except Exception as e:
         logger.critical(f'Could not load config file: {e}')
@@ -41,30 +43,28 @@ def validate_yaml_config(config: dict[str]) -> bool:
         raise MateyYamlConfigValidationError(e)
     return True
 
-        
-def tls_verify_check(config_instance: dict[str]) -> dict:
+
+def disable_https_warnings(sources_set: set) -> None:
     '''
-    Check if TLS verify is set to False, or set it to True if not set.
     This is a workaround for the requests library to disable TLS verification warnings.
     Default behavior is to verify TLS certificates.
     '''
-
-    if config_instance.get('verify') == False:
+    if False in sources_set:
         from requests.packages import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    else:
-        config_instance.update(verify=True)
-    return config_instance
     
 
 
 def load_sources(config: dict[str]) -> set:
-    '''Function that dynamically loads the correct datasource type.'''
+    '''
+    Function that dynamically loads the correct datasource type.
+    '''
     
     sources = set()
     
-    # TODO: Rework nested for loops
     for datasource, instance_configs in config.items():
         for cfg in instance_configs:
-            sources.add(matey_loaders[datasource][cfg.get('mode', 'simple')](**tls_verify_check(cfg)))
+            sources.add(matey_loaders[datasource][cfg.get('mode', 'simple')](**cfg))
+    
+    disable_https_warnings((source.verify for source in sources))
     return sources
