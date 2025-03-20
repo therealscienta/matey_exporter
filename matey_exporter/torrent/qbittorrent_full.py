@@ -106,8 +106,7 @@ class MateyQbittorrentFull(BaseMateyClass):
                         'host': self.host_url, 
                         'username' : kwargs.get('username'), 
                         'password' : kwargs.get('password')})
-    
-        self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
+        self.api.VERIFY_WEBUI_CERTIFICATE = self.verify
         self.metrics = MateyQbittorrentPrometheusMetricsFull()
 
     def get_torrent_data(self) -> None:

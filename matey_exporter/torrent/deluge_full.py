@@ -62,6 +62,7 @@ class MateyDelugePrometheusMetricsFull:
 class MateyDelugeFull(BaseMateyClass):
     
     def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.host_url = kwargs.get('host_url')
         self.password = kwargs.get('password')
         self.instance_name = kwargs.get('instance_name')

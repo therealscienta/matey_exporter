@@ -32,7 +32,7 @@ class MateyTransmissionSimple(BaseMateyClass):
             port=kwargs.get('port', 9091),
             username=kwargs.get('username'), 
             password=kwargs.get('password'))
-        self.api._http_session.verify = kwargs.get('verify') # Disable SSL verification
+        self.api._http_session.verify = self.verify
         self.metrics = MateyTransmissionPrometheusMetricsSimple()
 
 

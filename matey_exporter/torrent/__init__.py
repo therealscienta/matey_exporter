@@ -33,8 +33,8 @@ torrent_loader = {
         'simple': load_qbittorrent_simple,
         'full': load_qbittorrent_full
     },
-    'Deluge': { # TODO: change to deluge simple, when implemented
-        'simple': load_deluge_full,
+    'Deluge': {
+        'simple': load_deluge_simple,
         'full': load_deluge_full
     },
 }

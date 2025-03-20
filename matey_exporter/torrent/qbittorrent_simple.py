@@ -34,8 +34,15 @@ class MateyQbittorrentPrometheusMetricsSimple:
         self.qbittorrent_torrents_checkingResumeData =  Gauge('qbittorrent_torrents_checkingResumeData',    'Number of torrents checking resume data',  labelnames=['instance'])
 
         
-        self.qbittorrent_api_query_simple_latency_seconds =         Summary('qbittorrent_api_query_simple_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
-        self.qbittorrent_simple_data_processing_latency_seconds =   Summary('qbittorrent_simple_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
+        self.qbittorrent_api_query_simple_latency_seconds = Summary(
+            'qbittorrent_api_query_simple_latency_seconds',
+            'Latency for a single API query',
+            labelnames=['instance'])
+        
+        self.qbittorrent_simple_data_processing_latency_seconds = Summary(
+            'qbittorrent_simple_data_processing_latency_seconds',
+            'Latency for exporter data processing',
+            labelnames=['instance'])
 
     
 class MateyQbittorrentSimple(BaseMateyClass):
@@ -46,7 +53,7 @@ class MateyQbittorrentSimple(BaseMateyClass):
             'host': kwargs.get('host_url'), 
             'username' : kwargs.get('username'), 
             'password' : kwargs.get('password')})
-        self.api.VERIFY_WEBUI_CERTIFICATE = kwargs.get('verify')
+        self.api.VERIFY_WEBUI_CERTIFICATE = self.verify
         self.metrics = MateyQbittorrentPrometheusMetricsSimple()
 
         
