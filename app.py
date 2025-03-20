@@ -11,23 +11,22 @@ from matey_exporter import __version__, __build__
 from matey_exporter.common.log import logger
 from matey_exporter.common.exceptions import MateyYamlConfigValidationError
 
+parser = argparse.ArgumentParser(
+    add_help=True,
+    description="Matey Exporter is a Prometheus exporter for all things \
+                a virtual sailor of the seven seas might need.")
+
+parser.add_argument('--config',    type=str, help="Path to config file.")
+parser.add_argument('--port',      type=int, help="Port to listen for HTTP traffic.")
+parser.add_argument('--interval',  type=int, help="Interval between data collection jobs.")
+parser.add_argument('--log_level',    
+                    type=str, choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], 
+                    help="Log level, default: INFO.")
+
 if __name__ == '__main__':
     
-    parser = argparse.ArgumentParser(
-        add_help=True,
-        description="Matey Exporter is a Prometheus exporter for all things \
-                    a virtual sailor of the seven seas might need.")
-    
-    parser.add_argument('--config',    type=str, help="Path to config file.")
-    parser.add_argument('--port',      type=int, help="Port to listen for HTTP traffic.")
-    parser.add_argument('--interval',  type=int, help="Interval between data collection jobs.")
-    parser.add_argument('--log_level',    
-                        type=str, choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], 
-                        help="Log level, default: INFO.")
-
     args = parser.parse_args()
     load_dotenv()
-    
     mateyconfig = MateyExporterConfig()
     
     # Get listening port from arguments, or environment or default to 8000.
@@ -52,21 +51,20 @@ if __name__ == '__main__':
     i = Info('matey_build_version', 'Prometheus Matey Exporter build version')
     i.info({'version': __version__, 'build': __build__})
     
-    if mateyconfig.loglevel.upper() == 'DEBUG':
-        logger.debug(f'Matey exporter config: {mateyconfig}')
+    logger.debug(f'Matey exporter config: {mateyconfig}')
     
     # Start up the server to expose the metrics.
     # TODO: Handle KeyboardInterrupt (http servers are not nicely shutdown)
-    logger.info('Matey exporter starting.')
+    logger.info(f'Matey exporter starting. Verison: {__version__}-{__build__}')
     try:
         start_http_server(mateyconfig.port)
         start_matey_exporter()
     except (OSError, PermissionError) as e:
         logger.error(f'Failed to start server: {e}')
-    except KeyboardInterrupt:
-        logger.error(f'Matey exporter was interrupted.')
     except MateyYamlConfigValidationError as e:
         logger.error(f'{e.__class__.__name__}: {e}')
+    except KeyboardInterrupt:
+        logger.error(f'Matey exporter was interrupted.')
     except Exception as e:
         logger.error(f'Unexpected error: {e}')
     finally:
