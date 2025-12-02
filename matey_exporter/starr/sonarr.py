@@ -2,8 +2,9 @@
 from prometheus_client import Gauge, Summary
 from pyarr import SonarrAPI
 
-from matey_exporter.common import MateyQueryAndProcessDataError, singleton
-from .base import BaseStarrClass
+from matey_exporter.common.exceptions import MateyQueryAndProcessDataError
+from matey_exporter.common.decorators import singleton
+from matey_exporter.starr.base import BaseStarrClass
 
 @singleton
 class MateySonarrPrometheusMetrics:

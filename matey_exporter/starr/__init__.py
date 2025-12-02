@@ -1,4 +1,4 @@
-
+from .config_validation import starr_schemas
 
 def load_sonarr(**kwargs):
     from .sonarr import MateySonarr
@@ -17,8 +17,12 @@ def load_readarr(**kwargs):
     return MateyReadarr(**kwargs)
 
 starr_loader = {
-    'Sonarr': load_sonarr,
-    'Radarr': load_radarr,
-    'Lidarr': load_lidarr,
-    'Readar': load_readarr,
+    'Sonarr': {'simple': load_sonarr,
+               'full': load_sonarr},
+    'Radarr': {'simple': load_radarr,
+               'full': load_radarr},
+    'Lidarr': {'simple': load_lidarr,
+               'full': load_lidarr},
+    'Readar': {'simple': load_readarr,
+               'full': load_readarr}
 }

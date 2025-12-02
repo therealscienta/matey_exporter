@@ -25,8 +25,29 @@ jobs:
     - name: "Run slugify"
       id: slugify
       uses: eltimn/slugify-action@v2.0.1
+
+    - name: Add "dev" to version and replace SHA
+      run: |
+        # Make sure to export the value from the previous step
+        export SHA="${{ steps.slugify.outputs.sha }}"
+        VERSION=$(sed -n "s/^version = '\([^']*\)'/\1/p" matey_exporter/version.py)
+
+        # Export them as environment variables
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "BUILD=$SHA" >> $GITHUB_ENV
+        
+        # Modify version.py to add -dev and replace XXXX with the SHA
+        sed -i -e "s/^version = '\([^']*\)'/version = \"\1-dev\"/" matey_exporter/version.py && \
+        sed -i -e "s/XXXX/${SHA}/" matey_exporter/version.py
+
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-${{steps.slugify.outputs.sha}} --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-latest
+      run: |
+        docker build . --file Dockerfile \
+        --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-${{steps.slugify.outputs.sha}} \
+        --tag ${{ github.repository }}:${{steps.slugify.outputs.branch}}-latest \
+        --tag ${{ github.repository }}:$VERSION-dev-${{steps.slugify.outputs.sha}} \
+        --tag ${{ github.repository }}:$VERSION-dev-latest
+    
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:

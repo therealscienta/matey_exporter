@@ -1,6 +1,7 @@
 import pytest
 from matey_exporter.starr import load_radarr
 from matey_exporter.starr.radarr import MateyRadarr, MateyRadarrPrometheusMetrics
+
 good_test_config_1 = {
     "radarr": [
         {"host_url": "http://192.168.1.100:8989",

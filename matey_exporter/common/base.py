@@ -6,6 +6,7 @@ class BaseMateyClass(ABC):
         self.host_url = kwargs.get('host_url')
         self.api_key = kwargs.get('api_key') # TODO: Securely store api_key?
         self.instance_name = kwargs.get('instance_name')
+        self.verify = kwargs.get('verify', True)
         
     @abstractmethod
     def query_and_process_data(self):

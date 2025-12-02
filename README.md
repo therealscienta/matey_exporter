@@ -10,11 +10,17 @@ The main difference from other Prometheus exporters is that Matey Exporter is de
 
 The project is still in early stages and missing a lot of supported metrics. Feel free to contribute and help improve it.
 
-Currently supported services metrics:
-* Radarr
-* Sonarr
-* qBittorrent
-* Transmission
+Currently supported services metrics and tested versions:
+| Service  | Version |
+|   ---    |  ---    |
+| Radarr   |  5.19.3    |
+| Sonarr   |  4.0.13    |
+| Lidarr   |  ---    |
+| Readarr  |  ---    |
+| Prowlarr |  ---    |
+| qBittorrent | 5.0.3  |
+| Transmission| 4.0.6  |
+| Deluge  |   2.1.1  |
 
 ## Installation
 
@@ -81,7 +87,7 @@ prometheus.scrape "matey" {
   targets = [
     {
       "__address__" = "localhost:8000",
-      "job" = "matey",
+      "job" = "integrations/matey_exporter",
     },
   ]
 }

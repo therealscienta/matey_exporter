@@ -1,7 +1,7 @@
 
 import pytest
 from matey_exporter.utils import validate_yaml_config
-
+from matey_exporter.common.exceptions import MateyYamlConfigValidationError
 
 good_test_config = {
         "Sonarr": [
@@ -51,7 +51,7 @@ def test_good_validate_yaml_config():
     assert validate_yaml_config(good_test_config) == True
 
 def test_bad_validate_yaml_config():
-    with pytest.raises(SystemExit):
+    with pytest.raises(MateyYamlConfigValidationError):
         assert validate_yaml_config(bad_test_config_1)
-    with pytest.raises(SystemExit):
+    with pytest.raises(MateyYamlConfigValidationError):
         assert validate_yaml_config(bad_test_config_2)

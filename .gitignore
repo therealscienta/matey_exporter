@@ -178,6 +178,9 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# VSCode Stuff
+.vscode/*
+
 ### Python Patch ###
 # Poetry local configuration file - https://python-poetry.org/docs/configuration/#local-configuration
 poetry.toml
@@ -218,6 +221,6 @@ $RECYCLE.BIN/
 *.yaml
 
 # Test file
-test.py
+test_dev/*
 
 # End of https://www.toptal.com/developers/gitignore/api/python,windows,linux
