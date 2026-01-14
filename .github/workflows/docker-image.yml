@@ -22,11 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    
     - name: "Run slugify"
       id: slugify
       uses: eltimn/slugify-action@v2.0.1
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile  --tag 
 
     - name: Replace build with short SHA and export version
       run: |
@@ -55,7 +54,9 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USER }}
         password: ${{ secrets.DOCKERHUB_PAT }}
+    
     - name: Push Docker image to registry
       run: docker push ${{ github.repository }} --all-tags
+   
     - name: Logout from Docker Hub
       run: docker logout
