@@ -12,16 +12,16 @@ from matey_exporter.common.decorators import singleton
 @singleton
 class MateyDelugePrometheusMetricsSimple:
     def __init__(self):
-        self.allocating_torrents =    Gauge('allocating_torrents',  'Number of allocating torrents',    labelnames=['instance'])
-        self.checking_torrents =      Gauge('checking_torrents',    'Number of checking torrents',      labelnames=['instance'])
-        self.downloading_torrents =   Gauge('downloading_torrents', 'Number of downloading torrents',   labelnames=['instance'])
-        self.moving_torrents =        Gauge('moving_torrents',      'Number of moving torrents',        labelnames=['instance'])
-        self.seeding_torrents =       Gauge('seeding_torrents',     'Number of seeding torrents',       labelnames=['instance'])
-        self.error_torrents =         Gauge('error_torrents',       'Number of errored torrents',       labelnames=['instance'])
-        self.queued_torrents =        Gauge('queued_torrents',      'Number of queued torrents',        labelnames=['instance'])
-        self.paused_torrents =        Gauge('paused_torrents',      'Number of paused torrents',        labelnames=['instance'])
-        self.finished_torrents =      Gauge('finished_torrents',    'Number of finished torrents',      labelnames=['instance'])
-        self.unfinished_torrents =    Gauge('unfinished_torrents',  'Number of stopped torrents',       labelnames=['instance'])
+        self.deluge_torrents_allocating =   Gauge('deluge_torrents_allocating',  'Number of allocating torrents',    labelnames=['instance'])
+        self.deluge_torrents_checking =     Gauge('deluge_torrents_checking',    'Number of checking torrents',      labelnames=['instance'])
+        self.deluge_torrents_downloading =  Gauge('deluge_torrents_downloading', 'Number of downloading torrents',   labelnames=['instance'])
+        self.deluge_torrents_moving =       Gauge('deluge_torrents_moving',      'Number of moving torrents',        labelnames=['instance'])
+        self.deluge_torrents_seeding =      Gauge('deluge_torrents_seeding',     'Number of seeding torrents',       labelnames=['instance'])
+        self.deluge_torrents_error =        Gauge('deluge_torrents_error',       'Number of errored torrents',       labelnames=['instance'])
+        self.deluge_torrents_queued =       Gauge('deluge_torrents_queued',      'Number of queued torrents',        labelnames=['instance'])
+        self.deluge_torrents_paused =       Gauge('deluge_torrents_paused',      'Number of paused torrents',        labelnames=['instance'])
+        self.deluge_torrents_finished =     Gauge('deluge_torrents_finished',    'Number of finished torrents',      labelnames=['instance'])
+        self.deluge_torrents_unfinished =   Gauge('deluge_torrents_unfinished',  'Number of stopped torrents',       labelnames=['instance'])
         
         self.deluge_api_query_simple_latency_seconds = Summary(
             'deluge_api_query_simple_latency_seconds',
@@ -70,16 +70,16 @@ class MateyDelugeSimple(BaseMateyClass):
         data_counted_states = self.count_states(api_data)
 
         # Update the Prometheus metrics for various torrent states
-        self.metrics.allocating_torrents.labels(self.instance_name).set(data_counted_states.get('Checking metadata', 0))
-        self.metrics.checking_torrents.labels(self.instance_name).set(data_counted_states.get('Downloading', 0))
-        self.metrics.downloading_torrents.labels(self.instance_name).set(data_counted_states.get('Downloading', 0))
-        self.metrics.moving_torrents.labels(self.instance_name).set(data_counted_states.get('Queued', 0))
-        self.metrics.seeding_torrents.labels(self.instance_name).set(data_counted_states.get('Seeding', 0))
-        self.metrics.error_torrents.labels(self.instance_name).set(data_counted_states.get('Seeding', 0))
-        self.metrics.queued_torrents.labels(self.instance_name).set(data_counted_states.get('Paused', 0))
-        self.metrics.paused_torrents.labels(self.instance_name).set(data_counted_states.get('Paused', 0))
-        self.metrics.finished_torrents.labels(self.instance_name).set(data_counted_states.get('Finished', 0))
-        self.metrics.unfinished_torrents.labels(self.instance_name).set(data_counted_states.get('Unfinished', 0))
+        self.metrics.deluge_torrents_allocating.labels(self.instance_name).set(data_counted_states.get('Checking metadata', 0))
+        self.metrics.deluge_torrents_checking.labels(self.instance_name).set(data_counted_states.get('Downloading', 0))
+        self.metrics.deluge_torrents_downloading.labels(self.instance_name).set(data_counted_states.get('Downloading', 0))
+        self.metrics.deluge_torrents_moving.labels(self.instance_name).set(data_counted_states.get('Queued', 0))
+        self.metrics.deluge_torrents_seeding.labels(self.instance_name).set(data_counted_states.get('Seeding', 0))
+        self.metrics.deluge_torrents_error.labels(self.instance_name).set(data_counted_states.get('Seeding', 0))
+        self.metrics.deluge_torrents_queued.labels(self.instance_name).set(data_counted_states.get('Paused', 0))
+        self.metrics.deluge_torrents_paused.labels(self.instance_name).set(data_counted_states.get('Paused', 0))
+        self.metrics.deluge_torrents_finished.labels(self.instance_name).set(data_counted_states.get('Finished', 0))
+        self.metrics.deluge_torrents_unfinished.labels(self.instance_name).set(data_counted_states.get('Unfinished', 0))
 
         self.metrics.deluge_simple_data_processing_latency_seconds.labels(
             self.instance_name).observe(time.time() - start_data_processing_latency_time)
