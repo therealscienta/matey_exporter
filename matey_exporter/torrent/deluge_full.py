@@ -24,7 +24,7 @@ class MateyDelugePrometheusMetricsFull:
     def __init__(self):
         self.deluge_torrents_finished = Gauge(
             name='deluge_torrents_finished',
-            documentation='Number of torrents with missing files',
+            documentation='Number of finished torrents',
             labelnames=['instance', 'torrent_name'])
         
         self.deluge_torrent_size_bytes = Gauge(

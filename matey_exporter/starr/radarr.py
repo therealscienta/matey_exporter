@@ -16,8 +16,8 @@ class MateyRadarrPrometheusMetrics:
         self.radarr_movies_in_queue =           Gauge('radarr_movies_in_queue',             'Number of movies in queue',        labelnames=['instance'])
         self.radarr_health_errors =             Gauge('radarr_health_errors',               'Radarr health errors',             labelnames=['instance'])
         self.radarr_health_warnings =           Gauge('radarr_health_warnings',             'Radarr health warnings',           labelnames=['instance'])
-        self.radarr_health_ok =                 Gauge('radarr_health_ok',                   'Radarr health unknown Errors',     labelnames=['instance'])
-        self.radarr_health_notice =             Gauge('radarr_health_unknownWarnings',      'Radarr unkown warnings',           labelnames=['instance'])
+        self.radarr_health_ok =                 Gauge('radarr_health_ok',                   'Radarr health ok',                 labelnames=['instance'])
+        self.radarr_health_unknown_warnings =   Gauge('radarr_health_unknown_warnings',     'Radarr unknown warnings',          labelnames=['instance'])
         self.radarr_queue_errors_bool =         Gauge('radarr_queue_errors_bool',           'Queue errors bool',                labelnames=['instance'])
         self.radarr_queue_warnings_bool =       Gauge('radarr_queue_warnings_bool',         'Queue warnings bool',              labelnames=['instance'])
         self.radarr_queue_unknownerrors_bool =  Gauge('radarr_queue_unknownerrors_bool',    'Queue unknown errors bool',        labelnames=['instance'])
@@ -78,7 +78,7 @@ class MateyRadarr(BaseStarrClass):
         self.metrics.radarr_health_errors.labels(instance=self.instance_name).set(health.get('error'))
         self.metrics.radarr_health_warnings.labels(instance=self.instance_name).set(health.get('warning'))
         self.metrics.radarr_health_ok.labels(instance=self.instance_name).set(health.get('ok'))
-        self.metrics.radarr_health_notice.labels(instance=self.instance_name).set(health.get('notice'))
+        self.metrics.radarr_health_unknown_warnings.labels(instance=self.instance_name).set(health.get('notice'))
     
 
     def query_and_process_data(self):

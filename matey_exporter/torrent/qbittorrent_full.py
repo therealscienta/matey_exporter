@@ -62,14 +62,14 @@ class MateyQbittorrentPrometheusMetricsFull:
             documentation='Qbittorrent Torrent completed in bytes', 
             labelnames=['instance', 'torrent_name', 'torrent_path'])
 
-        self.qbittorrent_torrent_dlspeed = Gauge(
-            name='qbittorrent_torrent_dlspeed',
-            documentation='Qbittorrent Torrent download speed', 
+        self.qbittorrent_torrent_download_speed_bytes = Gauge(
+            name='qbittorrent_torrent_download_speed_bytes',
+            documentation='Qbittorrent Torrent download speed',
             labelnames=['instance', 'torrent_name', 'torrent_path'])
-        
-        self.qbittorrent_torrent_ulspeed = Gauge(
-            name='qbittorrent_torrent_ulspeed',
-            documentation='Qbittorrent Torrent upload speed', 
+
+        self.qbittorrent_torrent_upload_speed_bytes = Gauge(
+            name='qbittorrent_torrent_upload_speed_bytes',
+            documentation='Qbittorrent Torrent upload speed',
             labelnames=['instance', 'torrent_name', 'torrent_path'])
         
         self.qbittorrent_torrent_time_active_seconds = Gauge(
@@ -147,12 +147,12 @@ class MateyQbittorrentFull(BaseMateyClass):
                 torrent_name=torrent.name,
                 torrent_path=torrent.content_path).set(torrent.downloaded)
 
-            self.metrics.qbittorrent_torrent_dlspeed.labels(
+            self.metrics.qbittorrent_torrent_download_speed_bytes.labels(
                 instance=self.instance_name,
                 torrent_name=torrent.name,
                 torrent_path=torrent.content_path).set(torrent.dlspeed)
 
-            self.metrics.qbittorrent_torrent_ulspeed.labels(
+            self.metrics.qbittorrent_torrent_upload_speed_bytes.labels(
                 instance=self.instance_name,
                 torrent_name=torrent.name,
                 torrent_path=torrent.content_path).set(torrent.upspeed)

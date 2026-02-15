@@ -11,13 +11,13 @@ from matey_exporter.common.base import BaseMateyClass
 @singleton
 class MateyTransmissionPrometheusMetricsSimple:
     def __init__(self):
-        self.check_pending_torrents =       Gauge('check_pending_torrents',      'Number of check pending torrents',    labelnames=['instance'])
-        self.checking_torrents =            Gauge('checking_torrents',           'Number of checking torrents',         labelnames=['instance'])
-        self.downloading_torrents =         Gauge('downloading_torrents',        'Number of downloading torrents',      labelnames=['instance'])
-        self.download_pending_torrents =    Gauge('download_pending_torrents',   'Number of download pending torrents', labelnames=['instance'])
-        self.seeding_torrents =             Gauge('seeding_torrents',            'Number of seeding torrents',          labelnames=['instance'])
-        self.seed_pending_torrents =        Gauge('seed_pending_torrents',       'Number of seed pending torrents',     labelnames=['instance'])
-        self.stopped_torrents =             Gauge('stopped_torrents',            'Number of stopped torrents',          labelnames=['instance'])
+        self.transmission_torrents_check_pending =      Gauge('transmission_torrents_check_pending',      'Number of check pending torrents',    labelnames=['instance'])
+        self.transmission_torrents_checking =           Gauge('transmission_torrents_checking',           'Number of checking torrents',         labelnames=['instance'])
+        self.transmission_torrents_downloading =        Gauge('transmission_torrents_downloading',        'Number of downloading torrents',      labelnames=['instance'])
+        self.transmission_torrents_download_pending =   Gauge('transmission_torrents_download_pending',   'Number of download pending torrents', labelnames=['instance'])
+        self.transmission_torrents_seeding =            Gauge('transmission_torrents_seeding',            'Number of seeding torrents',          labelnames=['instance'])
+        self.transmission_torrents_seed_pending =       Gauge('transmission_torrents_seed_pending',       'Number of seed pending torrents',     labelnames=['instance'])
+        self.transmission_torrents_stopped =            Gauge('transmission_torrents_stopped',            'Number of stopped torrents',          labelnames=['instance'])
         
         self.transmission_api_query_simple_latency_seconds =         Summary('transmission_api_query_simple_latency_seconds',       'Latency for a single API query',       labelnames=['instance'])
         self.transmission_simple_data_processing_latency_seconds =   Summary('transmission_simple_data_processing_latency_seconds', 'Latency for exporter data processing', labelnames=['instance'])
@@ -61,13 +61,13 @@ class MateyTransmissionSimple(BaseMateyClass):
         start_data_processing_latency_time = time.time()
         data_counted_states = self.count_states(data)
         
-        self.metrics.check_pending_torrents.labels(self.instance_name).set(data_counted_states.get('check pending', 0))
-        self.metrics.checking_torrents.labels(self.instance_name).set(data_counted_states.get('checking', 0))
-        self.metrics.downloading_torrents.labels(self.instance_name).set(data_counted_states.get('downloading', 0))
-        self.metrics.download_pending_torrents.labels(self.instance_name).set(data_counted_states.get('download pending', 0))
-        self.metrics.seeding_torrents.labels(self.instance_name).set(data_counted_states.get('seeding', 0))
-        self.metrics.seed_pending_torrents.labels(self.instance_name).set(data_counted_states.get('seed pending', 0))
-        self.metrics.stopped_torrents.labels(self.instance_name).set(data_counted_states.get('stopped', 0))
+        self.metrics.transmission_torrents_check_pending.labels(self.instance_name).set(data_counted_states.get('check pending', 0))
+        self.metrics.transmission_torrents_checking.labels(self.instance_name).set(data_counted_states.get('checking', 0))
+        self.metrics.transmission_torrents_downloading.labels(self.instance_name).set(data_counted_states.get('downloading', 0))
+        self.metrics.transmission_torrents_download_pending.labels(self.instance_name).set(data_counted_states.get('download pending', 0))
+        self.metrics.transmission_torrents_seeding.labels(self.instance_name).set(data_counted_states.get('seeding', 0))
+        self.metrics.transmission_torrents_seed_pending.labels(self.instance_name).set(data_counted_states.get('seed pending', 0))
+        self.metrics.transmission_torrents_stopped.labels(self.instance_name).set(data_counted_states.get('stopped', 0))
         
         self.metrics.transmission_simple_data_processing_latency_seconds.labels(self.instance_name).observe(time.time() - start_data_processing_latency_time)
                                         
